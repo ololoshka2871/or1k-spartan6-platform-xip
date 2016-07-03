@@ -1,0 +1,99 @@
+#****************************************************************************
+#*
+#*   Copyright (C) 2016 Shilo_XyZ_. All rights reserved.
+#*   Author:  Shilo_XyZ_ <Shilo_XyZ_<at>mail.ru>
+#*
+#* Redistribution and use in source and binary forms, with or without
+#* modification, are permitted provided that the following conditions
+#* are met:
+#*
+#* 1. Redistributions of source code must retain the above copyright
+#*    notice, this list of conditions and the following disclaimer.
+#* 2. Redistributions in binary form must reproduce the above copyright
+#*    notice, this list of conditions and the following disclaimer in
+#*    the documentation and/or other materials provided with the
+#*    distribution.
+#* 3. Neither the name NuttX nor the names of its contributors may be
+#*    used to endorse or promote products derived from this software
+#*    without specific prior written permission.
+#*
+#* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+#* "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+#* LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+#* FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+#* COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+#* INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+#* BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
+#* OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
+#* AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+#* LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+#* ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+#* POSSIBILITY OF SUCH DAMAGE.
+#*
+#****************************************************************************/
+
+cmake_minimum_required(VERSION 2.8.5)
+
+project(or1k-spartan6-platform)
+
+# указать путь до модулей
+set(CMAKE_MODULE_PATH
+	${CMAKE_MODULE_PATH}
+	"${CMAKE_CURRENT_SOURCE_DIR}/cmake_modules/")
+
+find_package(Xilinx REQUIRED)
+
+set(PART_NAME "xc6slx9-3-tqg144"
+    CACHE STRING "Xilinx FPGA model to synthesis")
+set(INPUT_CLOCK_MHZ 48
+    CACHE STRING "FPGA main clock source (MHz)")
+
+add_subdirectory(hdl)
+
+#------------------------------------HDL----------------------------------------
+include(Xilinx_build)
+#------------------------------------prj----------------------------------------
+
+add_custom_command(OUTPUT ${PRJ_FILE_NAME} DEPENDS hdl)
+
+#------------------------------------xst----------------------------------------
+
+set(SYR_FILE	"${CMAKE_CURRENT_BINARY_DIR}/${TOP_MODULE_NAME}.syr")
+set(NGC_FILE	"${CMAKE_CURRENT_BINARY_DIR}/${TOP_MODULE_NAME}.ngc")
+
+make_xst(${SYR_FILE} ${NGC_FILE} ${PRJ_FILE_NAME} ${XST_FILE_NAME})
+
+#-----------------------------------ngdbuild------------------------------------
+
+set(NGD_FILE	"${CMAKE_CURRENT_BINARY_DIR}/${TOP_MODULE_NAME}.ngd")
+set(NGO_DIR	"${CMAKE_CURRENT_BINARY_DIR}/_ngo")
+
+make_ngdbuild(${NGD_FILE} ${NGO_DIR} ${UCF_FILE_NAME} ${NGC_FILE})
+
+#--------------------------------------map--------------------------------------
+
+set(MAP_FILE	"${CMAKE_CURRENT_BINARY_DIR}/${TOP_MODULE_NAME}_map.ncd")
+set(PCF_FILE	"${CMAKE_CURRENT_BINARY_DIR}/${TOP_MODULE_NAME}.pcf")
+
+#make_map(${MAP_FILE} ${PCF_FILE} ${PART_NAME} ${NGD_FILE})
+
+#--------------------------------------par--------------------------------------
+
+set(NCD_FILE	"${CMAKE_CURRENT_BINARY_DIR}/${TOP_MODULE_NAME}.ncd")
+
+#make_par(${NCD_FILE} ${MAP_FILE} ${PCF_FILE})
+
+#-------------------------------------trce--------------------------------------
+
+set(TWX_FILE	"${CMAKE_CURRENT_BINARY_DIR}/${TOP_MODULE_NAME}.twx")
+set(TWR_FILE	"${CMAKE_CURRENT_BINARY_DIR}/${TOP_MODULE_NAME}.twr")
+
+#make_trce(${TWX_FILE} ${TWR_FILE} ${NCD_FILE} ${PCF_FILE})
+
+#------------------------------------bitgen-------------------------------------
+
+set(BIT_FILE	"${CMAKE_CURRENT_BINARY_DIR}/${TOP_MODULE_NAME}.bit")
+
+#make_bitgen(${BIT_FILE} ${UT_FILE_NAME} ${NCD_FILE})
+
+#-------------------------------------HDL---------------------------------------
