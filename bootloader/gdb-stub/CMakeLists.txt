@@ -1,4 +1,5 @@
 #****************************************************************************
+#* src/gdb-stub/CMakeLists.txt
 #*
 #*   Copyright (C) 2016 Shilo_XyZ_. All rights reserved.
 #*   Author:  Shilo_XyZ_ <Shilo_XyZ_<at>mail.ru>
@@ -32,28 +33,15 @@
 #*
 #****************************************************************************/
 
-cmake_minimum_required(VERSION 3.0.2)
+cmake_minimum_required(VERSION 2.8.5)
 
-file(GLOB_RECURSE
-    ALTOR32_HDL_V
-#    RELATIVE ${CMAKE_BINARY_DIR}
-    FOLLOW_SYMLINKS
-    "*.v"
+SET(GDB_STUB_SOURCES
+    gdb.c
+    gdb_hw.c
     )
 
-# remove altor32_funcs.v from list
-list(REMOVE_ITEM ALTOR32_HDL_V ${CMAKE_CURRENT_SOURCE_DIR}/altor32_funcs.v)
+INCLUDE_DIRECTORIES(.)
 
-# Fake target: add sources to project tree (Qt Creator)
-file(GLOB_RECURSE
-    ALTOR32_HDL_V_PROJECT
-    FOLLOW_SYMLINKS
-    "*.v"
-    )
+add_library(gdb_stub STATIC ${GDB_STUB_SOURCES})
 
-add_custom_target(altor32_sources
-    SOURCES
-	${ALTOR32_HDL_V_PROJECT}
-    )
-
-set(ALTOR32_HDL_V	    ${ALTOR32_HDL_V}		PARENT_SCOPE)
+set(BOOT_S	${CMAKE_CURRENT_SOURCE_DIR}/boot.S	PARENT_SCOPE)

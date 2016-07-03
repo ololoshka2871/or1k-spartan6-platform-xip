@@ -37,7 +37,7 @@ cmake_minimum_required(VERSION 3.0.2)
 
 file(GLOB_RECURSE
     SOC_HDL_V
-    RELATIVE ${CMAKE_BINARY_DIR}
+#    RELATIVE ${CMAKE_BINARY_DIR}
     FOLLOW_SYMLINKS
     "*.v"
     )

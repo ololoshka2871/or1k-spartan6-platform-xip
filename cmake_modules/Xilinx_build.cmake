@@ -177,3 +177,40 @@ function(make_bitgen BIT_FILE UT_FILE_NAME NCD_FILE)
 
     add_custom_target(${PROJECT_NAME}_bitgen ALL DEPENDS ${BIT_FILE})
 endfunction(make_bitgen)
+
+function(make_fuse LIBS BENCH_EXECUTABLE TB_PRJ TOP_LVL_MODULE TESTBENCH_DIR)
+    add_custom_command(
+	OUTPUT
+	    ${BENCH_EXECUTABLE}
+	COMMAND
+	    ${XILINX_fuse}
+		-intstyle ise
+		-incremental
+		-lib unisims_ver
+		-lib unimacro_ver
+		-lib xilinxcorelib_ver
+		-lib secureip
+		${LIBS}
+		-o ${BENCH_EXECUTABLE}
+		-prj ${TB_PRJ}
+		${TOP_LVL_MODULE}
+		work.glbl
+	DEPENDS
+	    ${TB_PRJ}
+	WORKING_DIRECTORY
+	    ${TESTBENCH_DIR}
+	COMMENT
+	    "Making testbench ${BENCH_EXECUTABLE}"
+	)
+
+    add_custom_target(${PROJECT_NAME}_fuse.${TOP_LVL_MODULE}
+	DEPENDS ${BENCH_EXECUTABLE}
+	)
+    add_custom_target(${TOP_LVL_MODULE}.run
+	DEPENDS ${PROJECT_NAME}_fuse.${TOP_LVL_MODULE}
+	COMMAND
+	    export PATH=$PATH:${XILINX_DIR} && ${BENCH_EXECUTABLE} -gui
+	WORKING_DIRECTORY
+		${TESTBENCH_DIR}
+	)
+endfunction(make_fuse)

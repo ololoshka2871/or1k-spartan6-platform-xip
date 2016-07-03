@@ -1,4 +1,5 @@
 #****************************************************************************
+#* cmake_modules/or1k_toolchain.cmake
 #*
 #*   Copyright (C) 2016 Shilo_XyZ_. All rights reserved.
 #*   Author:  Shilo_XyZ_ <Shilo_XyZ_<at>mail.ru>
@@ -32,28 +33,60 @@
 #*
 #****************************************************************************/
 
-cmake_minimum_required(VERSION 3.0.2)
 
-file(GLOB_RECURSE
-    ALTOR32_HDL_V
-#    RELATIVE ${CMAKE_BINARY_DIR}
-    FOLLOW_SYMLINKS
-    "*.v"
+INCLUDE(CMakeForceCompiler)
+
+MESSAGE("Seting toolchain or1k-elf-")
+
+SET(CMAKE_SYSTEM_NAME Generic)
+SET(CMAKE_SYSTEM_VERSION 1)
+
+SET(TOOLCHAIN_PREFIX	or1k-elf-)
+
+# specify the cross compiler
+CMAKE_FORCE_C_COMPILER(${TOOLCHAIN_PREFIX}gcc GNU)
+SET(CMAKE_LINKER ${TOOLCHAIN_PREFIX}gcc)
+SET(CMAKE_C_LINK_EXECUTABLE
+    "<CMAKE_LINKER> <LINK_FLAGS> <OBJECTS> -o <TARGET> <LINK_LIBRARIES>")
+SET(CMAKE_ASM_COMPILER ${TOOLCHAIN_PREFIX}gcc)
+SET(CMAKE_ASM_COMPILE_OBJECT
+    "<CMAKE_ASM_COMPILER> <FLAGS> -c <SOURCE> -o <OBJECT>")
+
+SET(CMAKE_OBJDUMP ${TOOLCHAIN_PREFIX}objdump)
+SET(CMAKE_OBJCOPY ${TOOLCHAIN_PREFIX}objcopy)
+
+# linker script file
+set(LD_SCRIPT_FILE  "${CMAKE_CURRENT_SOURCE_DIR}/link.ld")
+set(MEM_BASE 0x10000000)
+
+SET(COMMON_FLAGS "-msoft-float -std=gnu99 -mno-delay")
+
+SET(CMAKE_C_FLAGS_COMMON "\
+    -Ttext ${MEMBASE} \
+    -Wall \
+    -pipe \
+    -ffunction-sections -fdata-sections \
+    -msoft-div -msoft-mul -mno-ror -mno-cmov -mno-sext \
+    ${COMMON_FLAGS}"
     )
 
-# remove altor32_funcs.v from list
-list(REMOVE_ITEM ALTOR32_HDL_V ${CMAKE_CURRENT_SOURCE_DIR}/altor32_funcs.v)
+add_definitions(-D__OR1K_NODELAY__ -D__OR1K__)
 
-# Fake target: add sources to project tree (Qt Creator)
-file(GLOB_RECURSE
-    ALTOR32_HDL_V_PROJECT
-    FOLLOW_SYMLINKS
-    "*.v"
+set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_COMMON} -g -Os")
+set(CMAKE_C_FLAGS_MINSIZEREL "${CMAKE_C_FLAGS_COMMON} -Os")
+set(CMAKE_C_FLAGS_RELWITHDEBINFO "${CMAKE_C_FLAGS_COMMON} -g -Os")
+set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_COMMON} -Os")
+
+SET(CMAKE_SHARED_LIBRARY_LINK_C_FLAGS)
+
+SET(CMAKE_ASM_FLAGS "-mno-delay -Wa,--defsym,__OR1K_NODELAY__=1")
+
+set(CMAKE_EXE_LINKER_FLAGS "\
+    ${COMMON_FLAGS} \
+    -nostartfiles \
+    -T${LD_SCRIPT_FILE} \
+    -Wl,-gc-sections"
     )
 
-add_custom_target(altor32_sources
-    SOURCES
-	${ALTOR32_HDL_V_PROJECT}
-    )
-
-set(ALTOR32_HDL_V	    ${ALTOR32_HDL_V}		PARENT_SCOPE)
+#-nodefaultlibs -nostdlib
+#-Wl,--whole-archive \

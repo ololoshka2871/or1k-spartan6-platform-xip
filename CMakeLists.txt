@@ -48,13 +48,17 @@ set(PART_NAME "xc6slx9-3-tqg144"
 set(INPUT_CLOCK_MHZ 48
     CACHE STRING "FPGA main clock source (MHz)")
 
-add_subdirectory(hdl)
+#---------------------------------bootloader------------------------------------
+add_subdirectory(bootloader)
+#--------------------------------/bootloader------------------------------------
+
 
 #------------------------------------HDL----------------------------------------
 include(Xilinx_build)
+add_subdirectory(hdl)
 #------------------------------------prj----------------------------------------
 
-add_custom_command(OUTPUT ${PRJ_FILE_NAME} DEPENDS hdl)
+add_custom_command(OUTPUT ${PRJ_FILE_NAME} DEPENDS bootloader hdl)
 
 #------------------------------------xst----------------------------------------
 
@@ -75,25 +79,26 @@ make_ngdbuild(${NGD_FILE} ${NGO_DIR} ${UCF_FILE_NAME} ${NGC_FILE})
 set(MAP_FILE	"${CMAKE_CURRENT_BINARY_DIR}/${TOP_MODULE_NAME}_map.ncd")
 set(PCF_FILE	"${CMAKE_CURRENT_BINARY_DIR}/${TOP_MODULE_NAME}.pcf")
 
-#make_map(${MAP_FILE} ${PCF_FILE} ${PART_NAME} ${NGD_FILE})
+make_map(${MAP_FILE} ${PCF_FILE} ${PART_NAME} ${NGD_FILE})
 
 #--------------------------------------par--------------------------------------
 
 set(NCD_FILE	"${CMAKE_CURRENT_BINARY_DIR}/${TOP_MODULE_NAME}.ncd")
 
-#make_par(${NCD_FILE} ${MAP_FILE} ${PCF_FILE})
+make_par(${NCD_FILE} ${MAP_FILE} ${PCF_FILE})
 
 #-------------------------------------trce--------------------------------------
 
 set(TWX_FILE	"${CMAKE_CURRENT_BINARY_DIR}/${TOP_MODULE_NAME}.twx")
 set(TWR_FILE	"${CMAKE_CURRENT_BINARY_DIR}/${TOP_MODULE_NAME}.twr")
 
-#make_trce(${TWX_FILE} ${TWR_FILE} ${NCD_FILE} ${PCF_FILE})
+make_trce(${TWX_FILE} ${TWR_FILE} ${NCD_FILE} ${PCF_FILE})
 
 #------------------------------------bitgen-------------------------------------
 
 set(BIT_FILE	"${CMAKE_CURRENT_BINARY_DIR}/${TOP_MODULE_NAME}.bit")
 
-#make_bitgen(${BIT_FILE} ${UT_FILE_NAME} ${NCD_FILE})
+make_bitgen(${BIT_FILE} ${UT_FILE_NAME} ${NCD_FILE})
 
-#-------------------------------------HDL---------------------------------------
+#------------------------------------/HDL---------------------------------------
+

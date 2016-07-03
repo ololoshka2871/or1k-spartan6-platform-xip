@@ -1,4 +1,5 @@
 #****************************************************************************
+#* src/CMakeLists.txt
 #*
 #*   Copyright (C) 2016 Shilo_XyZ_. All rights reserved.
 #*   Author:  Shilo_XyZ_ <Shilo_XyZ_<at>mail.ru>
@@ -32,28 +33,66 @@
 #*
 #****************************************************************************/
 
-cmake_minimum_required(VERSION 3.0.2)
+cmake_minimum_required(VERSION 2.8.5)
 
-file(GLOB_RECURSE
-    ALTOR32_HDL_V
-#    RELATIVE ${CMAKE_BINARY_DIR}
-    FOLLOW_SYMLINKS
-    "*.v"
+# указать путь до модулей
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH}
+	"${CMAKE_CURRENT_SOURCE_DIR}/cmake_modules/")
+
+INCLUDE("or1k_toolchain")
+
+add_subdirectory(hw)
+
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    add_subdirectory(gdb-stub)
+    SET(BOOT_LIB    gdb_stub)
+else()
+    #add_subdirectory(boot)
+endif()
+
+
+SET(PROJECT_SOURCES
+    main.c
     )
 
-# remove altor32_funcs.v from list
-list(REMOVE_ITEM ALTOR32_HDL_V ${CMAKE_CURRENT_SOURCE_DIR}/altor32_funcs.v)
-
-# Fake target: add sources to project tree (Qt Creator)
-file(GLOB_RECURSE
-    ALTOR32_HDL_V_PROJECT
-    FOLLOW_SYMLINKS
-    "*.v"
+INCLUDE_DIRECTORIES(
+    .
+    hw
     )
 
-add_custom_target(altor32_sources
-    SOURCES
-	${ALTOR32_HDL_V_PROJECT}
+add_executable(${PROJECT_NAME}.elf
+    ${BOOT_S}
+    ${PROJECT_SOURCES}
+    )
+target_link_libraries(${PROJECT_NAME}.elf
+    ${BOOT_LIB}
+    hw
     )
 
-set(ALTOR32_HDL_V	    ${ALTOR32_HDL_V}		PARENT_SCOPE)
+# make listing
+add_custom_target(${PROJECT_NAME}.lst
+    DEPENDS ${PROJECT_NAME}.elf
+    COMMAND ${CMAKE_OBJDUMP} -h -d -S ${PROJECT_NAME}.elf > ${PROJECT_NAME}.lst
+    )
+
+# make binary
+add_custom_target(${PROJECT_NAME}.bin
+    DEPENDS ${PROJECT_NAME}.elf
+    COMMAND ${CMAKE_OBJCOPY} -Obinary ${PROJECT_NAME}.elf ${PROJECT_NAME}.bin
+    )
+
+set(bootloader_HEX  ${CMAKE_CURRENT_BINARY_DIR}/bootloader.hex)
+
+#product
+add_custom_command(
+    OUTPUT
+	${bootloader_HEX}
+    DEPENDS
+	${PROJECT_NAME}.bin
+    COMMAND
+	xxd -ps -c 4 ${PROJECT_NAME}.bin > ${bootloader_HEX}
+    )
+
+add_custom_target(bootloader DEPENDS ${bootloader_HEX})
+
+SET(BOOTLOADER_IMAGE	${bootloader_HEX}   PARENT_SCOPE)

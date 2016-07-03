@@ -24,14 +24,14 @@ THE SOFTWARE.
 
 // Language: Verilog 2001
 
-`include "timescale.v"
+`timescale 1ns / 1ps
 
 /*
  * Wishbone dual port RAM
  */
-module wb_dp_ram2 #
+module wb_dp_ram #
 (
-	 parameter IMAGE_FILE = "",					 // filename to init ram
+    parameter NUM_OF_18k_TO_USE	= 31,
     parameter DATA_WIDTH = 32,                // width of data bus in bits (8, 16, 32, or 64)
     parameter ADDR_WIDTH = 32,                // width of address bus in bits
     parameter SELECT_WIDTH = (DATA_WIDTH/8)   // width of word select bus (1, 2, 4, or 8)
@@ -67,6 +67,9 @@ parameter WORD_WIDTH = SELECT_WIDTH;
 // size of words (8, 16, 32, or 64 bits)
 parameter WORD_SIZE = DATA_WIDTH/WORD_WIDTH;
 
+parameter MEMORY_SIZE_bits = NUM_OF_18k_TO_USE * 18 * 1024;
+parameter MEMORY_CELLS_NUMBER = MEMORY_SIZE_bits / DATA_WIDTH;
+
 reg [DATA_WIDTH-1:0] a_dat_o_reg = {DATA_WIDTH{1'b0}};
 reg a_ack_o_reg = 1'b0;
 
@@ -74,7 +77,7 @@ reg [DATA_WIDTH-1:0] b_dat_o_reg = {DATA_WIDTH{1'b0}};
 reg b_ack_o_reg = 1'b0;
 
 // (* RAM_STYLE="BLOCK" *)
-reg [DATA_WIDTH-1:0] mem[(2**VALID_ADDR_WIDTH)-1:0];
+reg [DATA_WIDTH-1:0] mem[MEMORY_CELLS_NUMBER - 1:0];
 
 wire [VALID_ADDR_WIDTH-1:0] a_adr_i_valid = a_adr_i >> (ADDR_WIDTH - VALID_ADDR_WIDTH);
 wire [VALID_ADDR_WIDTH-1:0] b_adr_i_valid = b_adr_i >> (ADDR_WIDTH - VALID_ADDR_WIDTH);
@@ -85,75 +88,38 @@ assign a_ack_o = a_ack_o_reg;
 assign b_dat_o = b_dat_o_reg;
 assign b_ack_o = b_ack_o_reg;
 
-integer i;
+initial begin
+    $readmemh("@BOOTLOADER_IMAGE@", mem);
+end
 
-generate
-    if(IMAGE_FILE != "")
-		initial begin
-			 $readmemh(IMAGE_FILE, mem);	
-		end
-endgenerate
+integer i, j;
 
 // port A
 always @(posedge a_clk) begin
-	if (a_cyc_i & a_stb_i) begin
-		if (a_we_i) begin // write?
-			if (a_sel_i[0]) begin
-				mem[a_adr_i_valid][7:0] <= a_dat_i[7:0];
-			end
-			if (a_sel_i[1]) begin
-				mem[a_adr_i_valid][15:8] <= a_dat_i[15:8];
-			end
-			if (a_sel_i[2]) begin
-				mem[a_adr_i_valid][23:16] <= a_dat_i[23:16];
-			end
-			if (a_sel_i[3]) begin
-				mem[a_adr_i_valid][31:24] <= a_dat_i[31:24];
-			end
-			a_dat_o_reg <= {DATA_WIDTH{1'b0}};
-		end
-		else
-		begin
-			//read
-			a_dat_o_reg <= mem[a_adr_i_valid];
-		end
-		a_ack_o_reg <= 1'b1;
-	end
-	else
-	begin
-		a_ack_o_reg <= 1'b0;
-	end
+    a_ack_o_reg <= 1'b0;
+    for (i = 0; i < WORD_WIDTH; i = i + 1) begin
+        if (a_cyc_i & a_stb_i & ~a_ack_o) begin
+            if (a_we_i & a_sel_i[i]) begin
+                mem[a_adr_i_valid][WORD_SIZE*i +: WORD_SIZE] <= a_dat_i[WORD_SIZE*i +: WORD_SIZE];
+            end
+            a_dat_o_reg[WORD_SIZE*i +: WORD_SIZE] <= mem[a_adr_i_valid][WORD_SIZE*i +: WORD_SIZE];
+            a_ack_o_reg <= 1'b1;
+        end
+    end
 end
 
 // port B
 always @(posedge b_clk) begin
-    if (b_cyc_i & b_stb_i) begin
-		if (b_we_i) begin // write?
-			if (b_sel_i[0]) begin
-				mem[b_adr_i_valid][7:0] <= b_dat_i[7:0];
-			end
-			if (b_sel_i[1]) begin
-				mem[b_adr_i_valid][15:8] <= b_dat_i[15:8];
-			end
-			if (b_sel_i[2]) begin
-				mem[b_adr_i_valid][23:16] <= b_dat_i[23:16];
-			end
-			if (b_sel_i[3]) begin
-				mem[b_adr_i_valid][31:24] <= b_dat_i[31:24];
-			end
-			b_dat_o_reg <= {DATA_WIDTH{1'b0}};
-		end
-		else
-		begin
-			//read
-			b_dat_o_reg <= mem[b_adr_i_valid];
-		end
-		b_ack_o_reg <= 1'b1;
-	end
-	else
-	begin
-		b_ack_o_reg <= 1'b0;
-	end
+    b_ack_o_reg <= 1'b0;
+    for (j = 0; j < WORD_WIDTH; j = j + 1) begin
+        if (b_cyc_i & b_stb_i & ~b_ack_o) begin
+	    if (b_we_i & b_sel_i[j]) begin
+		mem[b_adr_i_valid][WORD_SIZE*j +: WORD_SIZE] <= b_dat_i[WORD_SIZE*j +: WORD_SIZE];
+            end
+	    b_dat_o_reg[WORD_SIZE*j +: WORD_SIZE] <= mem[b_adr_i_valid][WORD_SIZE*j +: WORD_SIZE];
+            b_ack_o_reg <= 1'b1;
+        end
+    end
 end
 
 endmodule

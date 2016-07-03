@@ -122,16 +122,15 @@ wire 					  clk_io;
 parameter RAM_ADDRESS_LEN	= $clog2(FPGA_RAM_SIZE);
 
 //RAM
-wb_dp_ram2
+wb_dp_ram
 #(
-	//.IMAGE_FILE("creator-build/src/firmware.hex"),
-	.DATA_WIDTH(32),
-	.ADDR_WIDTH(RAM_ADDRESS_LEN)
+    .DATA_WIDTH(32),
+    .ADDR_WIDTH(RAM_ADDRESS_LEN)
 )
 ram
 (
-	 .a_clk(clk),
-	 .a_adr_i(imem_addr),
+    .a_clk(clk),
+    .a_adr_i(imem_addr),
     .a_dat_i(32'b0),
     .a_dat_o(imem_data),
     .a_we_i(32'b0),

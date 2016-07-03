@@ -73,7 +73,7 @@ add_subdirectory(memory)
 
 file(GLOB
     TOP_MODULE_FILE
-    RELATIVE ${CMAKE_BINARY_DIR}
+#    RELATIVE ${CMAKE_BINARY_DIR}
     "${TOP_MODULE_NAME}.v"
     )
 
@@ -107,21 +107,9 @@ set(PRJ_TEXT
 
 file(WRITE ${PRJ_FILE_NAME}.tmp ${PRJ_TEXT})
 
-#add_custom_command(
-#    OUTPUT ${PRJ_FILE_NAME}
-#    COMMAND
-#	${CMAKE_CURRENT_SOURCE_DIR}/scripts/checksrc.sh ${PRJ_FILE_NAME}.tmp ${PRJ_FILE_NAME}
-#    WORKING_DIRECTORY
-#	${CMAKE_BINARY_DIR}
-#    )
-
-#add_custom_target(hdl DEPENDS ${PRJ_FILE_NAME})
-
 add_custom_target(hdl
     COMMAND
 	${CMAKE_CURRENT_SOURCE_DIR}/scripts/checksrc.sh ${PRJ_FILE_NAME}.tmp ${PRJ_FILE_NAME}
-    WORKING_DIRECTORY
-	${CMAKE_BINARY_DIR}
     )
 
 #-----------------------------------xst-----------------------------------------
@@ -139,6 +127,49 @@ set(ucf_filename    "${CMAKE_CURRENT_SOURCE_DIR}/ucf/xilinx-${PART_NAME}.ucf")
 configure_file(${ucf_filename} ${UCF_FILE_NAME} COPYONLY)
 
 #-------------------------------------------------------------------------------
+
+#-------------------------------------sym---------------------------------------
+add_subdirectory(testbench)
+
+set(prj_libs altor32 soc memory work)
+set(testlibs_list)
+foreach(l ${prj_libs})
+    list(APPEND testlibs_list -lib ${l})
+endforeach()
+
+build_prj(XILINX_VERILOG_glbl_PRJ "verilog work	%f\n" ${XILINX_VERILOG_glbl})
+
+foreach(testfile ${TESTBENCH_HDL_V})
+    string(REGEX REPLACE ".*/(.*)\\.v" "\\1" testname ${testfile})
+    message(STATUS "Creating testbench target for ${testname}")
+
+    set(test_prj_file	    ${TESTBENCH_DIR}/${testname}.prj)
+    set(test_executable	    ${TESTBENCH_DIR}/${testname}.exe)
+    set(test_top_lvl_module "tb.${testname}")
+
+    # create prj
+    build_prj(TB_PRJ	    "verilog tb	%f\n"	"${testfile}")
+
+    file(WRITE ${test_prj_file}.tmp
+	${PRJ_TEXT} ${TB_PRJ} ${XILINX_VERILOG_glbl_PRJ})
+
+    add_custom_target(${testname}.prj
+	COMMAND
+	    ${CMAKE_CURRENT_SOURCE_DIR}/scripts/checksrc.sh ${test_prj_file}.tmp ${test_prj_file}
+	)
+
+    make_fuse(
+	"${testlibs_list}"
+	${test_executable}
+	${test_prj_file}
+	${test_top_lvl_module}
+	${TESTBENCH_DIR}
+	)
+    add_dependencies(${PROJECT_NAME}_fuse.${test_top_lvl_module} ${testname}.prj)
+
+endforeach()
+
+#------------------------------------/sym---------------------------------------
 
 set(PRJ_FILE_NAME	${PRJ_FILE_NAME}	PARENT_SCOPE)
 set(TOP_MODULE_NAME	${TOP_MODULE_NAME}	PARENT_SCOPE)

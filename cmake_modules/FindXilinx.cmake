@@ -52,7 +52,7 @@ if(XILINX_DIR)
     set(XILINX_FOUND TRUE)
     message(STATUS "Xilinx found: ${XILINX_DIR}")
 
-    set(utils	xst ngdbuild map par trce bitgen)
+    set(utils	xst ngdbuild map par trce bitgen fuse)
     foreach(u ${utils})
 	find_file(
 	    XILINX_${u}
@@ -61,6 +61,14 @@ if(XILINX_DIR)
 		${XILINX_DIR}
 	    )
     endforeach(u)
+
+    # $XILINX/verilog/src/glbl.v
+    find_file(
+	XILINX_VERILOG_glbl
+	glbl.v
+	PATHS
+	    ${XILINX_DIR}/../../verilog/src
+	)
 
 else (XILINX_DIR)
     set(XILINX_FOUND FALSE)
