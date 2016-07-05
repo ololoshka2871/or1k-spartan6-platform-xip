@@ -62,7 +62,7 @@ set(MEM_BASE 0x10000000)
 SET(COMMON_FLAGS "-msoft-float -std=gnu99 -mno-delay")
 
 SET(CMAKE_C_FLAGS_COMMON "\
-    -Ttext ${MEMBASE} \
+    -Ttext ${MEM_BASE} \
     -Wall \
     -pipe \
     -ffunction-sections -fdata-sections \

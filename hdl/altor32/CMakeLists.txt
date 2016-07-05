@@ -36,7 +36,6 @@ cmake_minimum_required(VERSION 3.0.2)
 
 file(GLOB_RECURSE
     ALTOR32_HDL_V
-#    RELATIVE ${CMAKE_BINARY_DIR}
     FOLLOW_SYMLINKS
     "*.v"
     )
@@ -45,15 +44,9 @@ file(GLOB_RECURSE
 list(REMOVE_ITEM ALTOR32_HDL_V ${CMAKE_CURRENT_SOURCE_DIR}/altor32_funcs.v)
 
 # Fake target: add sources to project tree (Qt Creator)
-file(GLOB_RECURSE
-    ALTOR32_HDL_V_PROJECT
-    FOLLOW_SYMLINKS
-    "*.v"
-    )
-
 add_custom_target(altor32_sources
     SOURCES
-	${ALTOR32_HDL_V_PROJECT}
+	${ALTOR32_HDL_V}
     )
 
 set(ALTOR32_HDL_V	    ${ALTOR32_HDL_V}		PARENT_SCOPE)

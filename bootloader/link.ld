@@ -1,7 +1,7 @@
 
 MEMORY 
 { 
-  sram (rwx) : ORIGIN = 0x10000000, LENGTH = 32K
+  sram (rwx) : ORIGIN = 0x10000000, LENGTH = 0x45C0
 }
 
 ENTRY(__start)

@@ -18,6 +18,7 @@ handle_exception:
     l.jalr r10
     l.nop
 
+exception_return:
     # Return value is stack pointer
     l.add r1, r0, r11
 
@@ -31,7 +32,7 @@ handle_exception:
 #-------------------------------------------------------------
 .org    0x100
 vector_reset:
-
+__start:
     # R4 = _bss_gdb_stub_start
     l.movhi r4,hi(_bss_gdb_stub_start);
     l.ori r4,r4,lo(_bss_gdb_stub_start);
@@ -48,7 +49,7 @@ BSS_GDB_STUB_CLEAR:
     l.nop
 
     //
-__start:
+_start:
     # Setup SP (R1)
     l.movhi r4,hi(_sp);
     l.ori r1,r4,lo(_sp);

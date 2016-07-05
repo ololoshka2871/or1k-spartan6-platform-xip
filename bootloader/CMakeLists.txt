@@ -35,6 +35,8 @@
 
 cmake_minimum_required(VERSION 2.8.5)
 
+project(or1k-spartan6-platform_bootloader ASM C)
+
 # указать путь до модулей
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH}
 	"${CMAKE_CURRENT_SOURCE_DIR}/cmake_modules/")
@@ -44,10 +46,11 @@ INCLUDE("or1k_toolchain")
 add_subdirectory(hw)
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-    add_subdirectory(gdb-stub)
+    add_subdirectory(gdb_stub)
     SET(BOOT_LIB    gdb_stub)
 else()
     #add_subdirectory(boot)
+    SET(BOOT_LIB    boot)
 endif()
 
 
@@ -55,11 +58,10 @@ SET(PROJECT_SOURCES
     main.c
     )
 
-INCLUDE_DIRECTORIES(
+include_directories(
     .
     hw
     )
-
 add_executable(${PROJECT_NAME}.elf
     ${BOOT_S}
     ${PROJECT_SOURCES}
@@ -68,15 +70,18 @@ target_link_libraries(${PROJECT_NAME}.elf
     ${BOOT_LIB}
     hw
     )
+#add_dependencies(${PROJECT_NAME}.elf ${LD_SCRIPT_FILE})
 
 # make listing
-add_custom_target(${PROJECT_NAME}.lst
+add_custom_command(
+    OUTPUT  ${PROJECT_NAME}.lst
     DEPENDS ${PROJECT_NAME}.elf
     COMMAND ${CMAKE_OBJDUMP} -h -d -S ${PROJECT_NAME}.elf > ${PROJECT_NAME}.lst
     )
 
 # make binary
-add_custom_target(${PROJECT_NAME}.bin
+add_custom_command(
+    OUTPUT  ${PROJECT_NAME}.bin
     DEPENDS ${PROJECT_NAME}.elf
     COMMAND ${CMAKE_OBJCOPY} -Obinary ${PROJECT_NAME}.elf ${PROJECT_NAME}.bin
     )
@@ -85,10 +90,8 @@ set(bootloader_HEX  ${CMAKE_CURRENT_BINARY_DIR}/bootloader.hex)
 
 #product
 add_custom_command(
-    OUTPUT
-	${bootloader_HEX}
-    DEPENDS
-	${PROJECT_NAME}.bin
+    OUTPUT  ${bootloader_HEX}
+    DEPENDS ${PROJECT_NAME}.bin
     COMMAND
 	xxd -ps -c 4 ${PROJECT_NAME}.bin > ${bootloader_HEX}
     )

@@ -37,21 +37,14 @@ cmake_minimum_required(VERSION 3.0.2)
 
 file(GLOB_RECURSE
     SOC_HDL_V
-#    RELATIVE ${CMAKE_BINARY_DIR}
     FOLLOW_SYMLINKS
     "*.v"
     )
 
 # Fake target: add sources to project tree (Qt Creator)
-file(GLOB_RECURSE
-    SOC_HDL_V_PROJECT
-    FOLLOW_SYMLINKS
-    "*.v"
-    )
-
 add_custom_target(soc_sources
     SOURCES
-	${SOC_HDL_V_PROJECT}
+	${SOC_HDL_V}
     )
 
 set(SOC_HDL_V		    ${SOC_HDL_V}		PARENT_SCOPE)

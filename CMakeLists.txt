@@ -58,7 +58,7 @@ include(Xilinx_build)
 add_subdirectory(hdl)
 #------------------------------------prj----------------------------------------
 
-add_custom_command(OUTPUT ${PRJ_FILE_NAME} DEPENDS bootloader hdl)
+add_custom_command(OUTPUT ${PRJ_FILE_NAME} DEPENDS hdl)
 
 #------------------------------------xst----------------------------------------
 

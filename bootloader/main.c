@@ -48,7 +48,7 @@ void h(unsigned int* v) {
     return;
 }
 
-void main() {
+void __attribute__((noreturn)) main()  {
     int i = 1;
 
     interrupts_init();

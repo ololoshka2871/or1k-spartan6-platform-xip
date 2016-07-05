@@ -41,7 +41,16 @@ SET(SYSTEM_MEMORY_FILE_NAME	wb_dp_ram.v)
 SET(SYSTEM_MEMORY_MODULE	${CMAKE_CURRENT_BINARY_DIR}/${SYSTEM_MEMORY_FILE_NAME})
 SET(SYSTEM_MEMORY_MODULE_IN	${CMAKE_CURRENT_SOURCE_DIR}/${SYSTEM_MEMORY_FILE_NAME})
 
-configure_file(${SYSTEM_MEMORY_MODULE_IN} ${SYSTEM_MEMORY_MODULE} @ONLY)
+configure_file(${SYSTEM_MEMORY_MODULE_IN} ${SYSTEM_MEMORY_MODULE}.tmp @ONLY)
+
+#force rebuild, if bootloader changed
+add_custom_target(memory_refresh
+    COMMAND
+	${SCRIPTS_DIR}/checkmemory.sh ${SYSTEM_MEMORY_MODULE}.tmp
+	    ${SYSTEM_MEMORY_MODULE} ${BOOTLOADER_IMAGE}
+    DEPENDS
+	bootloader
+    )
 
 add_custom_target(memory_sources
     SOURCES

@@ -47,6 +47,8 @@ set(TOP_MODULE_NAME	top)
 
 #-------------------------------------------------------------------------------
 
+set(SCRIPTS_DIR		"${CMAKE_CURRENT_SOURCE_DIR}/scripts")
+
 set(PRJ_FILE_NAME	"${CMAKE_CURRENT_BINARY_DIR}/${TOP_MODULE_NAME}.prj")
 set(XST_FILE_NAME	"${CMAKE_CURRENT_BINARY_DIR}/${TOP_MODULE_NAME}.xst")
 set(XST_IN_FILE_NAME	"${CMAKE_CURRENT_SOURCE_DIR}/${TOP_MODULE_NAME}.xst.in")
@@ -73,12 +75,6 @@ add_subdirectory(memory)
 
 file(GLOB
     TOP_MODULE_FILE
-#    RELATIVE ${CMAKE_BINARY_DIR}
-    "${TOP_MODULE_NAME}.v"
-    )
-
-file(GLOB
-    TOP_MODULE_FILE_PROJECT
     "${TOP_MODULE_NAME}.v"
     )
 
@@ -86,7 +82,7 @@ build_prj(TOP_PRJ	    "verilog work	%f\n"	"${TOP_MODULE_FILE}")
 
 add_custom_target(top_hdl_src
     SOURCES
-	${TOP_MODULE_FILE_PROJECT}
+	${TOP_MODULE_FILE}
     )
 
 #-----------------------------------prj-----------------------------------------
@@ -109,7 +105,9 @@ file(WRITE ${PRJ_FILE_NAME}.tmp ${PRJ_TEXT})
 
 add_custom_target(hdl
     COMMAND
-	${CMAKE_CURRENT_SOURCE_DIR}/scripts/checksrc.sh ${PRJ_FILE_NAME}.tmp ${PRJ_FILE_NAME}
+	${SCRIPTS_DIR}/checksrc.sh ${PRJ_FILE_NAME}.tmp ${PRJ_FILE_NAME}
+    DEPENDS
+	memory_refresh
     )
 
 #-----------------------------------xst-----------------------------------------
@@ -155,7 +153,7 @@ foreach(testfile ${TESTBENCH_HDL_V})
 
     add_custom_target(${testname}.prj
 	COMMAND
-	    ${CMAKE_CURRENT_SOURCE_DIR}/scripts/checksrc.sh ${test_prj_file}.tmp ${test_prj_file}
+	    ${SCRIPTS_DIR}/checksrc.sh ${test_prj_file}.tmp ${test_prj_file}
 	)
 
     make_fuse(
