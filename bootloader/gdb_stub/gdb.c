@@ -273,6 +273,100 @@ static char * GDB_STUB_SECTION_TEXT gdb_recv(void)
         return &_inbuffer[0];
     }
 }
+
+//-----------------------------------------------------------------
+// syscall_handler
+//-----------------------------------------------------------------
+unsigned int * GDB_STUB_SECTION_TEXT
+gdb_syscall(unsigned int *registers, unsigned int reason)
+{
+    unsigned int len;
+    char *str;
+
+    // Get l.sys opcode
+    unsigned int opcode = *((unsigned int*)(registers[REG_PC] - 4));
+    unsigned int sys_num = opcode & 0xFFFF;
+
+    char * ptr = _outbuffer;
+    switch (sys_num)
+    {
+      //---------------------------------------------------
+      // l.sys 1 -> putchar(r3)
+      //---------------------------------------------------
+      case 1:
+          *ptr++ = 'O';
+          *ptr++ = _hex_char[(registers[REG_ARG0] >> 4) & 0xf];
+          *ptr++ = _hex_char[registers[REG_ARG0] & 0xf];
+          *ptr++ = 0;
+          gdb_send (_outbuffer);
+
+          return registers;
+      //---------------------------------------------------
+      // l.sys 2 -> putstr(r3)
+      //---------------------------------------------------
+      case 2:
+          // Pointer to string
+          str = (char*)registers[REG_ARG0];
+          len = 0;
+
+          *ptr++ = 'O';
+          while (*str && (len < ((sizeof(_outbuffer)-2)/2)))
+          {
+              *ptr++ = _hex_char[((*str) >> 4) & 0xf];
+              *ptr++ = _hex_char[((*str) >> 0) & 0xf];
+              str++;
+          }
+          *ptr++ = 0;
+          gdb_send (_outbuffer);
+
+          return registers;
+      //---------------------------------------------------
+      // l.sys 3 -> exit(r3)
+      //---------------------------------------------------
+      case 3:
+          *ptr++ = 'W';
+          *ptr++ = _hex_char[(registers[REG_ARG0] >> 4) & 0xf];
+          *ptr++ = _hex_char[registers[REG_ARG0] & 0xf];
+          *ptr++ = 0;
+          gdb_send (_outbuffer);
+
+          // Remain in GDB stub...
+          break;
+      //---------------------------------------------------
+      // l.sys 4 -> set syscall_handler = r3
+      //---------------------------------------------------
+      case 4:
+      {
+          void* oldhandler = syscall_handler;
+          syscall_handler = (void*)registers[REG_ARG0];
+          registers[REG_ARG0] = (unsigned int)oldhandler;
+          return registers;
+      }
+      //---------------------------------------------------
+      // l.sys 5 -> set irq_handler = r3
+      //---------------------------------------------------
+      case 5:
+      {
+          void* oldhandler = syscall_handler;
+          irq_handler = (void*)registers[REG_ARG0];
+          registers[REG_ARG0] = (unsigned int)oldhandler;
+          return registers;
+      }
+      //---------------------------------------------------
+      // Default: User syscall
+      //---------------------------------------------------
+      default:
+          if (syscall_handler)
+              return syscall_handler(registers);
+          // Not supported
+          else
+          {
+              registers[REG_ARG0] = 0;
+              return registers;
+          }
+    }
+}
+
 //-----------------------------------------------------------------
 // gdb_exception
 //-----------------------------------------------------------------
@@ -312,88 +406,7 @@ gdb_exception(unsigned int *registers, unsigned int reason)
     // Exception due to syscall instruction
     else if (reason == OR32_EXC_SYSCALL)
     {
-        // Get l.sys opcode
-        unsigned int opcode = *((unsigned int*)(registers[REG_PC] - 4));
-        unsigned int sys_num = opcode & 0xFFFF;
-
-        ptr = _outbuffer;
-        switch (sys_num)
-        {
-          //---------------------------------------------------
-          // l.sys 1 -> putchar(r3)
-          //---------------------------------------------------
-          case 1:
-              *ptr++ = 'O';
-              *ptr++ = _hex_char[(registers[REG_ARG0] >> 4) & 0xf];
-              *ptr++ = _hex_char[registers[REG_ARG0] & 0xf];
-              *ptr++ = 0;
-              gdb_send (_outbuffer);
-
-              return registers;
-          //---------------------------------------------------
-          // l.sys 2 -> putstr(r3)
-          //---------------------------------------------------
-          case 2:
-              // Pointer to string
-              str = (char*)registers[REG_ARG0];
-              len = 0;
-
-              *ptr++ = 'O';
-              while (*str && (len < ((sizeof(_outbuffer)-2)/2)))
-              {
-                  *ptr++ = _hex_char[((*str) >> 4) & 0xf];
-                  *ptr++ = _hex_char[((*str) >> 0) & 0xf];
-                  str++;
-              }
-              *ptr++ = 0;
-              gdb_send (_outbuffer);
-
-              return registers;
-          //---------------------------------------------------
-          // l.sys 3 -> exit(r3)
-          //---------------------------------------------------
-          case 3:
-              *ptr++ = 'W';
-              *ptr++ = _hex_char[(registers[REG_ARG0] >> 4) & 0xf];
-              *ptr++ = _hex_char[registers[REG_ARG0] & 0xf];
-              *ptr++ = 0;
-              gdb_send (_outbuffer);
-
-              // Remain in GDB stub...
-              break;
-          //---------------------------------------------------
-          // l.sys 4 -> set syscall_handler = r3
-          //---------------------------------------------------
-          case 4:
-          {
-              void* oldhandler = syscall_handler;
-              syscall_handler = (void*)registers[REG_ARG0];
-              registers[REG_ARG0] = (unsigned int)oldhandler;
-              return registers;
-          }
-          //---------------------------------------------------
-          // l.sys 5 -> set irq_handler = r3
-          //---------------------------------------------------
-          case 5:
-          {
-              void* oldhandler = syscall_handler;
-              irq_handler = (void*)registers[REG_ARG0];
-              registers[REG_ARG0] = (unsigned int)oldhandler;
-              return registers;           
-          }
-          //---------------------------------------------------
-          // Default: User syscall
-          //---------------------------------------------------
-          default:
-              if (syscall_handler)
-                  return syscall_handler(registers);
-              // Not supported
-              else
-              {
-                  registers[REG_ARG0] = 0;
-                  return registers;
-              }              
-        } 
+        return gdb_syscall(registers, reason);
     }
 
     // Make sure debug enabled on return to user program
@@ -552,6 +565,17 @@ gdb_exception(unsigned int *registers, unsigned int reason)
         gdb_send (_outbuffer);
     }
 }
+
+//-----------------------------------------------------------------
+// interrupt_handler
+//-----------------------------------------------------------------
+unsigned int * GDB_STUB_SECTION_TEXT
+interrupt_handler(unsigned int *registers, unsigned int reason)
+{
+    if (irq_handler)
+        return irq_handler(registers);
+}
+
 //-----------------------------------------------------------------
 // gdb_main
 //-----------------------------------------------------------------

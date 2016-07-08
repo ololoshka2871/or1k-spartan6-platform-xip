@@ -175,7 +175,7 @@ function(make_bitgen BIT_FILE UT_FILE_NAME NCD_FILE)
 	    "Generating bitstream"
 	)
 
-    add_custom_target(${PROJECT_NAME}_bitgen ALL DEPENDS ${BIT_FILE})
+    add_custom_target(firmware DEPENDS ${BIT_FILE})
 endfunction(make_bitgen)
 
 function(make_fuse LIBS BENCH_EXECUTABLE TB_PRJ TOP_LVL_MODULE TESTBENCH_DIR)
@@ -209,8 +209,8 @@ function(make_fuse LIBS BENCH_EXECUTABLE TB_PRJ TOP_LVL_MODULE TESTBENCH_DIR)
     add_custom_target(${TOP_LVL_MODULE}.run
 	DEPENDS ${PROJECT_NAME}_fuse.${TOP_LVL_MODULE}
 	COMMAND
-	    export PATH=$PATH:${XILINX_DIR} && ${BENCH_EXECUTABLE} -gui
+	    export PATH=$PATH:${XILINX_DIR} && export XILINX=${XILINX_DIR}/../.. && ${BENCH_EXECUTABLE} -gui
 	WORKING_DIRECTORY
-		${TESTBENCH_DIR}
+	    ${TESTBENCH_DIR}
 	)
 endfunction(make_fuse)

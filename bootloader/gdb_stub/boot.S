@@ -105,7 +105,17 @@ vector_extint:
     # Arg 2 = Ext Int
     l.addi r4, r0, 2
 
-    l.j handle_exception
+    # Copy stack pointer to arg1
+    l.add r3, r0, r1
+
+    # Jump to interrupt handler
+    l.movhi r10,hi(interrupt_handler);
+    l.ori r10,r10,lo(interrupt_handler);
+    l.jalr r10
+    l.nop
+
+    # restore context
+    l.j exception_return
     l.nop
 
 .size vector_extint, .-vector_extint
@@ -122,7 +132,17 @@ vector_syscall:
     # Arg 2 = Syscall
     l.addi r4, r0, 3
 
-    l.j handle_exception
+    # Copy stack pointer to arg1
+    l.add r3, r0, r1
+
+    # Jump to interrupt handler
+    l.movhi r10,hi(gdb_syscall);
+    l.ori r10,r10,lo(gdb_syscall);
+    l.jalr r10
+    l.nop
+
+    # restore context
+    l.j exception_return
     l.nop
 
 .size vector_syscall, .-vector_syscall

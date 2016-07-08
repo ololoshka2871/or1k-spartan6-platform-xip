@@ -154,6 +154,8 @@ foreach(testfile ${TESTBENCH_HDL_V})
     add_custom_target(${testname}.prj
 	COMMAND
 	    ${SCRIPTS_DIR}/checksrc.sh ${test_prj_file}.tmp ${test_prj_file}
+	DEPENDS
+	    memory_refresh
 	)
 
     make_fuse(

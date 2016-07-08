@@ -36,7 +36,7 @@
 
 INCLUDE(CMakeForceCompiler)
 
-MESSAGE("Seting toolchain or1k-elf-")
+MESSAGE(STATUS "Setting toolchain or1k-elf-")
 
 SET(CMAKE_SYSTEM_NAME Generic)
 SET(CMAKE_SYSTEM_VERSION 1)

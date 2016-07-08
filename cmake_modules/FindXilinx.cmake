@@ -52,7 +52,7 @@ if(XILINX_DIR)
     set(XILINX_FOUND TRUE)
     message(STATUS "Xilinx found: ${XILINX_DIR}")
 
-    set(utils	xst ngdbuild map par trce bitgen fuse)
+    set(utils	xst ngdbuild map par trce bitgen fuse impact)
     foreach(u ${utils})
 	find_file(
 	    XILINX_${u}
