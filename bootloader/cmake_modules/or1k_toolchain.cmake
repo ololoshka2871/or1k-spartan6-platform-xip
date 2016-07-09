@@ -56,7 +56,8 @@ SET(CMAKE_OBJDUMP ${TOOLCHAIN_PREFIX}objdump)
 SET(CMAKE_OBJCOPY ${TOOLCHAIN_PREFIX}objcopy)
 
 # linker script file
-set(LD_SCRIPT_FILE  "${CMAKE_CURRENT_SOURCE_DIR}/link.ld")
+set(LD_SCRIPT_FILE_IN  "${CMAKE_CURRENT_SOURCE_DIR}/link.ld.in")
+set(LD_SCRIPT_FILE     "${CMAKE_CURRENT_SOURCE_DIR}/link.ld")
 set(MEM_BASE 0x10000000)
 
 SET(COMMON_FLAGS "-msoft-float -std=gnu99 -mno-delay")

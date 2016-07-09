@@ -34,7 +34,11 @@
 
 cmake_minimum_required(VERSION 2.8.5)
 
-project(or1k-spartan6-platform)
+project(or1k-spartan6-platform NONE)
+
+if(NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE "Debug")
+endif()
 
 # указать путь до модулей
 set(CMAKE_MODULE_PATH
@@ -43,10 +47,16 @@ set(CMAKE_MODULE_PATH
 
 find_package(Xilinx REQUIRED)
 
-set(PART_NAME "xc6slx9-3-tqg144"
+set(PART_NAME	    "xc6slx9-3-tqg144"
     CACHE STRING "Xilinx FPGA model to synthesis")
 set(INPUT_CLOCK_MHZ 48
     CACHE STRING "FPGA main clock source (MHz)")
+set(SPI_FLASH_CHIP  "W25Q32BV"
+    CACHE STRING "SPI flash memory part name")
+set(FPGA_DP_MEMORY_USE	32
+    CACHE STRING "Number of RAMB16BWERs to use as main memory")
+
+#add_subdirectory(tools)
 
 #---------------------------------bootloader------------------------------------
 add_subdirectory(bootloader)
@@ -102,3 +112,26 @@ make_bitgen(${BIT_FILE} ${UT_FILE_NAME} ${NCD_FILE})
 
 #------------------------------------/HDL---------------------------------------
 
+#----------------------------------programm-------------------------------------
+
+set(IMPACT_BATCH_FILE_CHIP_IN	${CMAKE_CURRENT_SOURCE_DIR}/programm_chip.cmd.in)
+set(IMPACT_BATCH_FILE_FLASH_IN	${CMAKE_CURRENT_SOURCE_DIR}/programm_flash.cmd.in)
+
+set(IMPACT_BATCH_FILE_CHIP	${CMAKE_CURRENT_BINARY_DIR}/programm_chip.cmd)
+set(IMPACT_BATCH_FILE_FLASH	${CMAKE_CURRENT_BINARY_DIR}/programm_flash.cmd)
+
+set(MCS_FLAH_IMAGE		${CMAKE_CURRENT_BINARY_DIR}/${TOP_MODULE_NAME}.mcs)
+
+set(IMPACT_LOG			${CMAKE_CURRENT_BINARY_DIR}/impact.log)
+
+set(CDF_FILE			${CMAKE_CURRENT_BINARY_DIR}/cdffile.cdf)
+
+configure_file(${IMPACT_BATCH_FILE_CHIP_IN} ${IMPACT_BATCH_FILE_CHIP} @ONLY)
+configure_file(${IMPACT_BATCH_FILE_FLASH_IN} ${IMPACT_BATCH_FILE_FLASH} @ONLY)
+
+build_mcs(${MCS_FLAH_IMAGE} 0x0 ${BIT_FILE})
+
+make_impact_programm(${IMPACT_BATCH_FILE_CHIP} ${BIT_FILE})
+make_impact_flash(${IMPACT_BATCH_FILE_FLASH} ${MCS_FLAH_IMAGE})
+
+#---------------------------------/programm-------------------------------------

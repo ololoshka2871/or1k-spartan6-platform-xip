@@ -1,0 +1,6 @@
+setMode -bscan
+setCable -p auto
+addDevice -p 1 -file "@BIT_FILE@"
+program -v -p 1
+saveCDF -file "@CDF_FILE@"
+quit

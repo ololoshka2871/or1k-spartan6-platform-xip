@@ -38,6 +38,7 @@
 //-----------------------------------------------------------------
 
 `include "timescale.v"
+`include "config.v"
 
 //-----------------------------------------------------------------
 // TOP
@@ -51,11 +52,11 @@ module top
     input           rx,
     output          tx,
 	
-	// leds
-	inout wire[3:0] leds_io,
-	
-	// reset CPU key
-	input wire		rst_i
+    // leds
+    inout wire[3:0] leds_io,
+
+    // reset CPU key
+    input wire	    rst_i
 );
 
 //-----------------------------------------------------------------
@@ -64,7 +65,6 @@ module top
 parameter       OSC_KHZ             = 48000;
 parameter       CLK_KHZ             = 48000;
 parameter       UART_BAUD           = 115200;
-parameter		 FPGA_RAM_SIZE			= 32768;
 
 //-----------------------------------------------------------------
 // Ports
@@ -109,21 +109,22 @@ wire                imem_stb;
 wire                imem_cyc;
 wire                imem_ack;
 
-wire[3:0]			  GPIO_oe;
-wire[3:0]			  GPIO_o;
-wire[3:0]			  GPIO_i;
+wire[3:0]	    GPIO_oe;
+wire[3:0]	    GPIO_o;
+wire[3:0]	    GPIO_i;
 
-wire 					  clk_io;
+wire		    clk_io;
 
 //-----------------------------------------------------------------
 // Instantiation
 //-----------------------------------------------------------------
-
+parameter FPGA_RAM_SIZE		= (`NUM_OF_16k_MEM * 16 * 1024) / 8;
 parameter RAM_ADDRESS_LEN	= $clog2(FPGA_RAM_SIZE);
 
 //RAM
 wb_dp_ram
 #(
+    .NUM_OF_16k_TO_USE(`NUM_OF_16k_MEM),
     .DATA_WIDTH(32),
     .ADDR_WIDTH(RAM_ADDRESS_LEN)
 )
@@ -140,7 +141,7 @@ ram
     .a_cyc_i(imem_cyc),
     
     .b_clk(clk),
-	 .b_adr_i(dmem_addr),
+    .b_adr_i(dmem_addr),
     .b_dat_i(dmem_data_w),
     .b_dat_o(dmem_data_r),
     .b_we_i(dmem_we),
@@ -152,22 +153,22 @@ ram
 
 gpio_top gpioA
 (
-	.wb_clk_i(clk), 
-	.wb_rst_i(reset), 
-	.wb_cyc_i(fm_cyc),
-	.wb_adr_i(fm_addr),
-	.wb_dat_i(fm_data_w),
-	.wb_sel_i(fm_sel),
-	.wb_we_i(fm_we),
-	.wb_stb_i(fm_stb),
-	.wb_dat_o(fm_data_r),
-	.wb_ack_o(fm_ack),
-	.wb_err_o(fm_stall),
-	.wb_inta_o(),
-	
-	.ext_pad_i(GPIO_i),
-	.ext_pad_o(GPIO_o),
-	.ext_padoe_o(GPIO_oe)
+    .wb_clk_i(clk),
+    .wb_rst_i(reset),
+    .wb_cyc_i(fm_cyc),
+    .wb_adr_i(fm_addr),
+    .wb_dat_i(fm_data_w),
+    .wb_sel_i(fm_sel),
+    .wb_we_i(fm_we),
+    .wb_stb_i(fm_stb),
+    .wb_dat_o(fm_data_r),
+    .wb_ack_o(fm_ack),
+    .wb_err_o(fm_stall),
+    .wb_inta_o(),
+
+    .ext_pad_i(GPIO_i),
+    .ext_pad_o(GPIO_o),
+    .ext_padoe_o(GPIO_oe)
 );
 
 // CPU
@@ -275,7 +276,7 @@ always @(posedge clk)
 if (rst_i == 1'b0)
     reset       <= 1'b1;
 else
-	reset       <= 1'b0;
+    reset       <= 1'b0;
 //else 
 //    rst_next    <= 1'b0;
 
@@ -284,19 +285,19 @@ genvar i;
 generate
 for (i = 0; i < 4; i = i + 1)
 begin : iobuf_gen
-	IOBUF 
-	#(
-		.DRIVE(12), // Specify the output drive strength
-		.IOSTANDARD("DEFAULT"), // Specify the I/O standard
-		.SLEW("SLOW") // Specify the output slew rate
-	) 
-	IOBUF_inst 
-	(
-		.O(GPIO_i[i]),     // Buffer output
-		.IO(leds_io[i]),   // Buffer inout port (connect directly to top-level port)
-		.I(GPIO_o[i]),     // Buffer input
-		.T(~GPIO_oe[i])    // 3-state enable input, high=input, low=output
-	);
+    IOBUF
+    #(
+	.DRIVE(12), // Specify the output drive strength
+	.IOSTANDARD("DEFAULT"), // Specify the I/O standard
+	.SLEW("SLOW") // Specify the output slew rate
+    )
+    IOBUF_inst
+    (
+	.O(GPIO_i[i]),     // Buffer output
+	.IO(leds_io[i]),   // Buffer inout port (connect directly to top-level port)
+	.I(GPIO_o[i]),     // Buffer input
+	.T(~GPIO_oe[i])    // 3-state enable input, high=input, low=output
+    );
 end
 endgenerate
 

@@ -70,7 +70,8 @@ target_link_libraries(${PROJECT_NAME}.elf
     ${BOOT_LIB}
     hw
     )
-#add_dependencies(${PROJECT_NAME}.elf ${LD_SCRIPT_FILE})
+math(EXPR MAIN_MEMOR_SIZE_B "${FPGA_DP_MEMORY_USE} * 16 * 1024 / 8")
+configure_file(${LD_SCRIPT_FILE_IN} ${LD_SCRIPT_FILE} @ONLY)
 
 # make listing
 add_custom_command(

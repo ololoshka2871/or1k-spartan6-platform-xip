@@ -33,3 +33,4 @@
 //****************************************************************************/
 
 `define	    INPUT_CLOCK_MHZ	    @INPUT_CLOCK_MHZ@
+`define	    NUM_OF_16k_MEM	    @FPGA_DP_MEMORY_USE@

@@ -1,0 +1,13 @@
+setMode -bs
+setMode -bs
+setMode -bs
+setMode -bs
+setCable -port auto
+Identify -inferir
+identifyMPM
+assignFile -p 1 -file "@BIT_FILE@"
+attachflash -position 1 -spi "@SPI_FLASH_CHIP@"
+assignfiletoattachedflash -position 1 -file "@MCS_FLAH_IMAGE@"
+attachflash -position 1 -spi "@SPI_FLASH_CHIP@"
+Program -p 1 -dataWidth 1 -spionly -e -v -loadfpga
+quit

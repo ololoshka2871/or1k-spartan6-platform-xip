@@ -166,6 +166,7 @@ function(make_bitgen BIT_FILE UT_FILE_NAME NCD_FILE)
 	COMMAND
 	    ${XILINX_bitgen}
 		-f ${UT_FILE_NAME}
+		-m # generate .msk
 		${NCD_FILE}
 		${BIT_FILE}
 	DEPENDS
@@ -177,6 +178,32 @@ function(make_bitgen BIT_FILE UT_FILE_NAME NCD_FILE)
 
     add_custom_target(firmware DEPENDS ${BIT_FILE})
 endfunction(make_bitgen)
+
+function(make_impact_programm CMD_FILE BIT_FILE)
+    add_custom_target(programm
+	COMMAND
+	    ${XILINX_impact}
+		-batch ${CMD_FILE}
+	DEPENDS
+	    ${CMD_FILE}
+	    ${BIT_FILE}
+	COMMENT
+	    "Programming target..."
+	)
+endfunction(make_impact_programm)
+
+function(make_impact_flash CMD_FILE FLASH_IMAGE)
+    add_custom_target(flash
+	COMMAND
+	    ${XILINX_impact}
+		-batch ${CMD_FILE}
+	DEPENDS
+	    ${CMD_FILE}
+	    ${FLASH_IMAGE}
+	COMMENT
+	    "Programming flash..."
+	)
+endfunction(make_impact_flash)
 
 function(make_fuse LIBS BENCH_EXECUTABLE TB_PRJ TOP_LVL_MODULE TESTBENCH_DIR)
     add_custom_command(
@@ -214,3 +241,31 @@ function(make_fuse LIBS BENCH_EXECUTABLE TB_PRJ TOP_LVL_MODULE TESTBENCH_DIR)
 	    ${TESTBENCH_DIR}
 	)
 endfunction(make_fuse)
+
+function(build_mcs MCS_FLAH_IMAGE offset0 file0)
+    set(argsList -u ${offset0} ${file0})
+    set(files ${file0})
+    if (${ARGC} GREATER 3)
+	SET(ARGS    ${ARGV})
+	list(REMOVE_AT ARGS 0 1 2)
+	list(LENGTH ARGS args_length)
+	math(EXPR args_length "${args_length} - 1")
+	foreach(i RANGE 0 ${args_length} 2)
+	    list(GET ARGS ${i} offset)
+	    math(EXPR i1 "${i} + 1")
+	    list(GET ARGS ${i1} file)
+	    list(APPEND argsList -u ${offset} ${file})
+	    list(APPEND files ${file})
+	endforeach()
+    endif()
+    set(product "${argsList}")
+    add_custom_command(
+	OUTPUT
+	    ${MCS_FLAH_IMAGE}
+	COMMAND
+	    ${XILINX_promgen} -w -spi -c 0xff -p mcs -o ${MCS_FLAH_IMAGE} ${product}
+	DEPENDS
+	    "${files}"
+	)
+
+endfunction(build_mcs)
