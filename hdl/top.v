@@ -190,7 +190,7 @@ u_cpu
     // General - clocking & reset
     .clk_i(clk),
     .rst_i(reset),
-    .fault_o(leds_io[3]),
+    .fault_o(),
     .break_o(),
     .nmi_i(1'b0),
     .intr_i(soc_irq),
@@ -287,7 +287,7 @@ else
 // bidirectional GPIO
 genvar i;
 generate
-for (i = 0; i < 3; i = i + 1)
+for (i = 0; i < 4; i = i + 1)
 begin : iobuf_gen
     IOBUF
     #(
