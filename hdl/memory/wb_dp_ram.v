@@ -47,6 +47,7 @@ module wb_dp_ram #
     input  wire                    a_stb_i,   // STB_I strobe input
     output wire                    a_ack_o,   // ACK_O acknowledge output
     input  wire                    a_cyc_i,   // CYC_I cycle input
+    output wire			   a_stall_o, // incorrect address
 
     // port B
     input  wire                    b_clk,
@@ -57,7 +58,8 @@ module wb_dp_ram #
     input  wire [SELECT_WIDTH-1:0] b_sel_i,   // SEL_I() select input
     input  wire                    b_stb_i,   // STB_I strobe input
     output wire                    b_ack_o,   // ACK_O acknowledge output
-    input  wire                    b_cyc_i    // CYC_I cycle input
+    input  wire                    b_cyc_i,   // CYC_I cycle input
+    output wire			   b_stall_o  // incorrect address
 );
 
 // for interfaces that are more than one word wide, disable address lines
@@ -82,14 +84,20 @@ reg [DATA_WIDTH-1:0] mem[MEMORY_CELLS_NUMBER - 1:0];
 wire [VALID_ADDR_WIDTH-1:0] a_adr_i_valid = a_adr_i >> (ADDR_WIDTH - VALID_ADDR_WIDTH);
 wire [VALID_ADDR_WIDTH-1:0] b_adr_i_valid = b_adr_i >> (ADDR_WIDTH - VALID_ADDR_WIDTH);
 
+reg a_incorrect_addr = 1'b0;
+reg b_incorrect_addr = 1'b0;
+
 assign a_dat_o = a_dat_o_reg;
 assign a_ack_o = a_ack_o_reg;
 
 assign b_dat_o = b_dat_o_reg;
 assign b_ack_o = b_ack_o_reg;
 
+assign a_stall_o = a_incorrect_addr;
+assign b_stall_o = b_incorrect_addr;
+
 initial begin
-    $readmemh("@BOOTLOADER_IMAGE@", mem);
+    $readmemh("@IMAGE@", mem);
 end
 
 integer i, j;
@@ -97,8 +105,9 @@ integer i, j;
 // port A
 always @(posedge a_clk) begin
     a_ack_o_reg <= 1'b0;
+    a_incorrect_addr <= a_adr_i > MEMORY_SIZE_bits / 8;
     for (i = 0; i < WORD_WIDTH; i = i + 1) begin
-        if (a_cyc_i & a_stb_i & ~a_ack_o) begin
+	if (a_cyc_i & a_stb_i & ~a_ack_o & ~a_incorrect_addr) begin
             if (a_we_i & a_sel_i[i]) begin
                 mem[a_adr_i_valid][WORD_SIZE*i +: WORD_SIZE] <= a_dat_i[WORD_SIZE*i +: WORD_SIZE];
             end
@@ -111,8 +120,9 @@ end
 // port B
 always @(posedge b_clk) begin
     b_ack_o_reg <= 1'b0;
+    b_incorrect_addr <= b_adr_i > MEMORY_SIZE_bits / 8;
     for (j = 0; j < WORD_WIDTH; j = j + 1) begin
-        if (b_cyc_i & b_stb_i & ~b_ack_o) begin
+	if (b_cyc_i & b_stb_i & ~b_ack_o & ~b_incorrect_addr) begin
 	    if (b_we_i & b_sel_i[j]) begin
 		mem[b_adr_i_valid][WORD_SIZE*j +: WORD_SIZE] <= b_dat_i[WORD_SIZE*j +: WORD_SIZE];
             end

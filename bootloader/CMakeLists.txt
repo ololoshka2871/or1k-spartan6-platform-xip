@@ -47,7 +47,8 @@ add_subdirectory(hw)
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
     add_subdirectory(gdb_stub)
-    SET(BOOT_LIB    gdb_stub)
+    SET(BOOT_LIB	    gdb_stub)
+    SET(BOOT_LIB_NOTRAP	    gdb_stub_notrap)
 else()
     #add_subdirectory(boot)
     SET(BOOT_LIB    boot)
@@ -62,6 +63,10 @@ include_directories(
     .
     hw
     )
+
+math(EXPR MAIN_MEMOR_SIZE_B "${FPGA_DP_MEMORY_USE} * 16 * 1024 / 8")
+configure_file(${LD_SCRIPT_FILE_IN} ${LD_SCRIPT_FILE} @ONLY)
+
 add_executable(${PROJECT_NAME}.elf
     ${BOOT_S}
     ${PROJECT_SOURCES}
@@ -70,33 +75,49 @@ target_link_libraries(${PROJECT_NAME}.elf
     ${BOOT_LIB}
     hw
     )
-math(EXPR MAIN_MEMOR_SIZE_B "${FPGA_DP_MEMORY_USE} * 16 * 1024 / 8")
-configure_file(${LD_SCRIPT_FILE_IN} ${LD_SCRIPT_FILE} @ONLY)
 
-# make listing
-add_custom_command(
-    OUTPUT  ${PROJECT_NAME}.lst
-    DEPENDS ${PROJECT_NAME}.elf
-    COMMAND ${CMAKE_OBJDUMP} -h -d -S ${PROJECT_NAME}.elf > ${PROJECT_NAME}.lst
+add_executable(${PROJECT_NAME}_sim.elf
+    ${BOOT_S}
+    ${PROJECT_SOURCES}
+    )
+target_link_libraries(${PROJECT_NAME}_sim.elf
+    ${BOOT_LIB_NOTRAP}
+    hw
     )
 
-# make binary
-add_custom_command(
-    OUTPUT  ${PROJECT_NAME}.bin
-    DEPENDS ${PROJECT_NAME}.elf
-    COMMAND ${CMAKE_OBJCOPY} -Obinary ${PROJECT_NAME}.elf ${PROJECT_NAME}.bin
-    )
+function(elf2hex ELF_FILE HEX_FILE)
+    # make listing
+    add_custom_command(
+	OUTPUT  ${ELF_FILE}.lst
+	DEPENDS ${ELF_FILE}
+	COMMAND ${CMAKE_OBJDUMP} -h -d -S ${ELF_FILE} > ${ELF_FILE}.lst
+	)
 
-set(bootloader_HEX  ${CMAKE_CURRENT_BINARY_DIR}/bootloader.hex)
+    # make binary
+    add_custom_command(
+	OUTPUT  ${ELF_FILE}.bin
+	DEPENDS ${ELF_FILE} ${ELF_FILE}.lst
+	COMMAND ${CMAKE_OBJCOPY} -Obinary ${ELF_FILE} ${ELF_FILE}.bin
+	)
 
-#product
-add_custom_command(
-    OUTPUT  ${bootloader_HEX}
-    DEPENDS ${PROJECT_NAME}.bin
-    COMMAND
-	xxd -ps -c 4 ${PROJECT_NAME}.bin > ${bootloader_HEX}
-    )
+    #product
+    add_custom_command(
+	OUTPUT  ${HEX_FILE}
+	DEPENDS ${ELF_FILE}.bin
+	COMMAND
+	    xxd -ps -c 4 ${ELF_FILE}.bin > ${HEX_FILE}
+	)
 
-add_custom_target(bootloader DEPENDS ${bootloader_HEX})
 
-SET(BOOTLOADER_IMAGE	${bootloader_HEX}   PARENT_SCOPE)
+endfunction()
+
+set(bootloader_HEX	    ${CMAKE_CURRENT_BINARY_DIR}/bootloader.hex)
+set(bootloader_notrap_HEX   ${CMAKE_CURRENT_BINARY_DIR}/bootloader_notrap.hex)
+
+elf2hex(${PROJECT_NAME}.elf ${bootloader_HEX})
+elf2hex(${PROJECT_NAME}_sim.elf ${bootloader_notrap_HEX})
+
+add_custom_target(bootloader DEPENDS ${bootloader_HEX} ${bootloader_notrap_HEX})
+
+SET(BOOTLOADER_IMAGE		${bootloader_HEX}	    PARENT_SCOPE)
+SET(BOOTLOADER_SIM_IMAGE	${bootloader_notrap_HEX}    PARENT_SCOPE)

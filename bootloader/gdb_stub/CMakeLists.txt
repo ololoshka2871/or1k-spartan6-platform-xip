@@ -35,13 +35,13 @@
 
 cmake_minimum_required(VERSION 2.8.5)
 
-SET(GDB_STUB_SOURCES
-    gdb.c
-    gdb_hw.c
-    )
+SET(GDB_HW_SRC		    gdb_hw.c)
+SET(GDB_NORMAL_SRC	    gdb.c)
+SET(GDB_NOTRAP_SRC	    gdb_notrap.c)
 
 INCLUDE_DIRECTORIES(.)
 
-add_library(gdb_stub STATIC ${GDB_STUB_SOURCES})
+add_library(gdb_stub STATIC ${GDB_HW_SRC} ${GDB_NORMAL_SRC})
+add_library(gdb_stub_notrap STATIC ${GDB_HW_SRC} ${GDB_NOTRAP_SRC})
 
 set(BOOT_S	${CMAKE_CURRENT_SOURCE_DIR}/boot.S	PARENT_SCOPE)

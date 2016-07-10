@@ -27,7 +27,9 @@ SECTIONS
       . = ALIGN(4);
       PROVIDE(_bss_gdb_stub_start = .);
       KEEP(*(.bss.gdb_stub))     /* gdb-stub bss */
+      . = ALIGN(4);
       PROVIDE(_bss_gdb_stub_end = .);
+      . += 8;
   } > sram
 
   .text :
@@ -64,8 +66,9 @@ SECTIONS
     PROVIDE(_bss_start = .);
     *(.bss*)
     *(COMMON)
-    
+    . = ALIGN(4);
     PROVIDE(_bss_end = .);
+    . += 8;
 
     __heap_start__ = .;
     end = __heap_start__;

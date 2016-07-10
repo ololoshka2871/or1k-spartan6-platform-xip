@@ -11,10 +11,18 @@ else
 	MEM_FILE_DATE=0
 fi
 
+MEM_TMP_FILE_DATE=`date -d "$(stat -c %y $MEM_TMP_FILE)" +%s`
+
 IMAGE_DATE=`date -d "$(stat -c %y $HEX_IMAGE)" +%s`
 
 if [[ "$IMAGE_DATE" > "$MEM_FILE_DATE" ]]; then 
 	echo "File $HEX_IMAGE changed"
 	cp $MEM_TMP_FILE $MEM_FILE
+	exit 0
 fi
 
+if [[ "$MEM_TMP_FILE_DATE" > "$MEM_FILE_DATE" ]]; then
+	echo "File $MEM_TMP_FILE_DATE changed"
+	cp $MEM_TMP_FILE $MEM_FILE
+	exit 0
+fi

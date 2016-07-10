@@ -32,46 +32,29 @@
 #*
 #****************************************************************************/
 
-cmake_minimum_required(VERSION 3.0.2)
+include(ExternalProject)
+include(ProcessorCount)
 
-SET(SYSTEM_MEMORY_FILE_NAME	wb_dp_ram.v)
+ProcessorCount(make_jobs)
 
-SET(SYSTEM_MEMORY_MODULE	${CMAKE_CURRENT_BINARY_DIR}/${SYSTEM_MEMORY_FILE_NAME})
-SET(SYSTEM_MEMORY_MODULE_SIM	${CMAKE_CURRENT_BINARY_DIR}/sim_${SYSTEM_MEMORY_FILE_NAME})
-SET(SYSTEM_MEMORY_MODULE_IN	${CMAKE_CURRENT_SOURCE_DIR}/${SYSTEM_MEMORY_FILE_NAME})
+set(srecord_DIR	    ${CMAKE_CURRENT_BINARY_DIR}/srecord)
 
-set(IMAGE   ${BOOTLOADER_IMAGE})
-configure_file(${SYSTEM_MEMORY_MODULE_IN} ${SYSTEM_MEMORY_MODULE}.tmp @ONLY)
-set(IMAGE   ${BOOTLOADER_SIM_IMAGE})
-configure_file(${SYSTEM_MEMORY_MODULE_IN} ${SYSTEM_MEMORY_MODULE_SIM}.tmp @ONLY)
-
-#force rebuild, if bootloader changed
-add_custom_target(memory_refresh
-    COMMAND
-	${SCRIPTS_DIR}/checkmemory.sh ${SYSTEM_MEMORY_MODULE}.tmp
-	    ${SYSTEM_MEMORY_MODULE} ${BOOTLOADER_IMAGE}
-    DEPENDS
-	bootloader ${SYSTEM_MEMORY_MODULE}.tmp
-    COMMENT
-	"Checking main memory image"
-    )
-add_custom_target(memory_refresh_sim
-    COMMAND
-	${SCRIPTS_DIR}/checkmemory.sh ${SYSTEM_MEMORY_MODULE_SIM}.tmp
-	    ${SYSTEM_MEMORY_MODULE_SIM} ${BOOTLOADER_SIM_IMAGE}
-    DEPENDS
-	bootloader ${SYSTEM_MEMORY_MODULE_SIM}.tmp
-    COMMENT
-	"Checking sim memory image"
+ExternalProject_Add(srecord
+    DOWNLOAD_DIR    ${CMAKE_CURRENT_BINARY_DIR}
+    URL		    http://downloads.sourceforge.net/project/srecord/srecord/1.64/srecord-1.64.tar.gz
+    URL_MD5	    4de4a7497472d7972645c2af91313769
+    BUILD_IN_SOURCE 1
+    CONFIGURE_COMMAND ./configure --prefix=${srecord_DIR}
+    BUILD_COMMAND   ${CMAKE_MAKE_PROGRAM} -j${make_jobs}
+    INSTALL_DIR	    ${srecord_DIR}
     )
 
-add_custom_target(memory_sources
-    SOURCES
-	${SYSTEM_MEMORY_MODULE_IN}
-    )
-
-SET(MEMORY_HDL_V	${SYSTEM_MEMORY_MODULE})
-SET(MEMORY_HDL_SIM_V	${SYSTEM_MEMORY_MODULE_SIM})
-
-set(MEMORY_HDL_V	${MEMORY_HDL_V}		PARENT_SCOPE)
-set(MEMORY_HDL_SIM_V	${MEMORY_HDL_SIM_V}	PARENT_SCOPE)
+set(utils	cat cmp info)
+foreach(u ${utils})
+    find_file(
+	srec_${u}
+	${u}
+	PATHS
+	    ${srecord_DIR}/bin
+	)
+endforeach(u)

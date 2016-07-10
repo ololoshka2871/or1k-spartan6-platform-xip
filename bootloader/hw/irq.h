@@ -29,7 +29,7 @@ int irq_check(int interrupt);
 irq_handler install_irq_global_handler(irq_handler handler);
 void interrupts_init(void);
 
-void setInterruptPriority(enum InterruptSources src, uint8_t prio);
+void setInterruptPriority(enum InterruptSources src, uint8_t new_prio);
 isr_handler set_irq_handler(enum InterruptSources src, isr_handler handler);
 
 void __or1k_disable_interrupts(void);

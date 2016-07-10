@@ -9,6 +9,14 @@ else
 	PRJ_FILE_DATE=0
 fi
 
+PRJ_TMP_FILE_DATE=`date -d "$(stat -c %y $PRJ_TMP_FILE)" +%s`
+
+if [[ "$PRJ_TMP_FILE_DATE" > "$PRJ_FILE_DATE" ]]; then
+	echo "File $PRJ_TMP_FILE changed"
+	cp $PRJ_TMP_FILE $PRJ_FILE
+	exit 0
+fi
+
 while read line; do
 	FILE=`echo "$line" | awk '{print $3}'`
 	FILE_DATE=`date -d "$(stat -c %y $FILE)" +%s`

@@ -586,20 +586,7 @@ extern void main(void);
 void GDB_STUB_SECTION_TEXT gdb_main(void)
 {
 #ifndef NDEBUG
-    gdb_putstr("\r\nGDB Debug Agent\r\n");
-
-    // Jump to debugger
-#ifdef STANDART_INIT
-    _initial_trap = 1;
-#else
-    /*
-     * please add following commands to GDB initialisation
-     * (gdb) set remote interrupt-on-connect
-     * (gdb) break main
-     */
-    _initial_trap = 0;
-#endif /* STANDART_INIT */
-    asm volatile ("l.trap 0");
+    gdb_putstr("G");
 #endif /* NDEBUG */
     while (1)
         main();

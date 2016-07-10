@@ -54,10 +54,11 @@ void __attribute__((noreturn)) main()  {
     interrupts_init();
     set_irq_handler(IS_TIMER_SYSTICK, h);
     setInterruptPriority(IS_TIMER_HIRES, 1);
+    irq_enable(IS_TIMER_SYSTICK);
     //setInterruptPriority(8, 3);
     GPIO portA = gpio_port_init(GPIO_PORTA, 0b1111);
 
-    //EXIT_CRITICAL();
+    EXIT_CRITICAL();
 
     for(;;) {
     	gpio_port_set_all(portA, i & 0b1111);

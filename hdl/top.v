@@ -62,8 +62,8 @@ module top
 //-----------------------------------------------------------------
 // Params
 //-----------------------------------------------------------------
-parameter       OSC_KHZ             = 48000;
-parameter       CLK_KHZ             = 48000;
+parameter       OSC_KHZ             = `INPUT_CLOCK_MHZ * 1000;
+parameter       CLK_KHZ             = OSC_KHZ; // for timer
 parameter       UART_BAUD           = 115200;
 
 //-----------------------------------------------------------------
@@ -101,6 +101,7 @@ wire                dmem_we;
 wire                dmem_stb;
 wire                dmem_cyc;
 wire                dmem_ack;
+wire                dmem_stall;
 
 wire[31:0]          imem_addr;
 wire[31:0]          imem_data;
@@ -108,6 +109,7 @@ wire[3:0]           imem_sel;
 wire                imem_stb;
 wire                imem_cyc;
 wire                imem_ack;
+wire                imem_stall;
 
 wire[3:0]	    GPIO_oe;
 wire[3:0]	    GPIO_o;
@@ -134,11 +136,12 @@ ram
     .a_adr_i(imem_addr),
     .a_dat_i(32'b0),
     .a_dat_o(imem_data),
-    .a_we_i(32'b0),
+    .a_we_i(1'b0),
     .a_sel_i(imem_sel),
     .a_stb_i(imem_stb),
     .a_ack_o(imem_ack),
     .a_cyc_i(imem_cyc),
+    .a_stall_o(imem_stall),
     
     .b_clk(clk),
     .b_adr_i(dmem_addr),
@@ -148,7 +151,8 @@ ram
     .b_sel_i(dmem_sel),
     .b_stb_i(dmem_stb),
     .b_ack_o(dmem_ack),
-    .b_cyc_i(dmem_cyc)
+    .b_cyc_i(dmem_cyc),
+    .b_stall_o(dmem_stall)
 );
 
 gpio_top gpioA
@@ -186,7 +190,7 @@ u_cpu
     // General - clocking & reset
     .clk_i(clk),
     .rst_i(reset),
-    .fault_o(),
+    .fault_o(leds_io[3]),
     .break_o(),
     .nmi_i(1'b0),
     .intr_i(soc_irq),
@@ -198,7 +202,7 @@ u_cpu
     .imem0_cti_o(/* open */),
     .imem0_cyc_o(imem_cyc),
     .imem0_stb_o(imem_stb),
-    .imem0_stall_i(1'b0),
+    .imem0_stall_i(imem_stall),
     .imem0_ack_i(imem_ack),
     
     // Data Memory 0 (0x10000000 - 0x10FFFFFF)
@@ -210,11 +214,11 @@ u_cpu
     .dmem0_cyc_o(dmem_cyc),
     .dmem0_we_o(dmem_we),
     .dmem0_stb_o(dmem_stb),
-    .dmem0_stall_i(1'b0),
+    .dmem0_stall_i(dmem_stall),
     .dmem0_ack_i(dmem_ack),
 
     // Data Memory 1 (0x11000000 - 0x11FFFFFF)
-	 .dmem1_addr_o(fm_addr),
+    .dmem1_addr_o(fm_addr),
     .dmem1_data_o(fm_data_w),
     .dmem1_data_i(fm_data_r),
     .dmem1_sel_o(fm_sel),
@@ -283,7 +287,7 @@ else
 // bidirectional GPIO
 genvar i;
 generate
-for (i = 0; i < 4; i = i + 1)
+for (i = 0; i < 3; i = i + 1)
 begin : iobuf_gen
     IOBUF
     #(

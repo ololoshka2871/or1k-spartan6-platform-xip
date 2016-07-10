@@ -103,7 +103,7 @@ vector_extint:
     asm_save_context
 
     # Arg 2 = Ext Int
-    l.addi r4, r0, 2
+    #l.addi r4, r0, 2
 
     # Copy stack pointer to arg1
     l.add r3, r0, r1
@@ -130,7 +130,7 @@ vector_syscall:
     asm_save_context
 
     # Arg 2 = Syscall
-    l.addi r4, r0, 3
+    #l.addi r4, r0, 3
 
     # Copy stack pointer to arg1
     l.add r3, r0, r1

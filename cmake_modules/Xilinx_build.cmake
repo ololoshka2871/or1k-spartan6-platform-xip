@@ -205,12 +205,13 @@ function(make_impact_flash CMD_FILE FLASH_IMAGE)
 	)
 endfunction(make_impact_flash)
 
-function(make_fuse LIBS BENCH_EXECUTABLE TB_PRJ TOP_LVL_MODULE TESTBENCH_DIR)
+function(make_fuse LIBS BENCH_EXECUTABLE TB_PRJ TOP_LVL_MODULE TESTBENCH_DIR INCLUDE_PATH)
     add_custom_command(
 	OUTPUT
 	    ${BENCH_EXECUTABLE}
 	COMMAND
 	    ${XILINX_fuse}
+		${INCLUDE_PATH}
 		-intstyle ise
 		-incremental
 		-lib unisims_ver

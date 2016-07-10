@@ -88,13 +88,14 @@ add_custom_target(top_hdl_src
 #-----------------------------------prj-----------------------------------------
 
 configure_file(${config_v_file_name_in} ${config_v_file_name} @ONLY)
-list(APPEND MY_MODULES_HDL_V ${config_v_file_name})
 
 build_prj(ALTOR32_CORE_PRJ  "verilog altor32	%f\n"	"${ALTOR32_HDL_V}")
 build_prj(SOC_PRJ	    "verilog soc	%f\n"	"${SOC_HDL_V}")
 build_prj(MEMORY_PRJ	    "verilog memory	%f\n"	"${MEMORY_HDL_V}")
+build_prj(CONFIG_PRJ        "verilog config     %f\n"   "${config_v_file_name}")
 
 set(PRJ_TEXT
+    ${CONFIG_PRJ}
     ${ALTOR32_CORE_PRJ}
     ${SOC_PRJ}
     ${MEMORY_PRJ}
@@ -135,7 +136,10 @@ foreach(l ${prj_libs})
     list(APPEND testlibs_list -lib ${l})
 endforeach()
 
-build_prj(XILINX_VERILOG_glbl_PRJ "verilog work	%f\n" ${XILINX_VERILOG_glbl})
+set(test_include_path -i ${CMAKE_CURRENT_BINARY_DIR})
+
+build_prj(XILINX_VERILOG_glbl_PRJ   "verilog work	%f\n"	${XILINX_VERILOG_glbl})
+build_prj(MEMORY_HDL_SIM_PRJ	    "verilog memory	%f\n"	"${MEMORY_HDL_SIM_V}")
 
 foreach(testfile ${TESTBENCH_HDL_V})
     string(REGEX REPLACE ".*/(.*)\\.v" "\\1" testname ${testfile})
@@ -146,16 +150,23 @@ foreach(testfile ${TESTBENCH_HDL_V})
     set(test_top_lvl_module "tb.${testname}")
 
     # create prj
-    build_prj(TB_PRJ	    "verilog tb	%f\n"	"${testfile}")
+    build_prj(TB_PRJ	"verilog tb	%f\n"	"${testfile}")
 
     file(WRITE ${test_prj_file}.tmp
-	${PRJ_TEXT} ${TB_PRJ} ${XILINX_VERILOG_glbl_PRJ})
+	${CONFIG_PRJ}
+	${ALTOR32_CORE_PRJ}
+	${SOC_PRJ}
+	${MEMORY_HDL_SIM_PRJ}
+	${TOP_PRJ}
+	${TB_PRJ}
+	${XILINX_VERILOG_glbl_PRJ}
+	)
 
     add_custom_target(${testname}.prj
 	COMMAND
 	    ${SCRIPTS_DIR}/checksrc.sh ${test_prj_file}.tmp ${test_prj_file}
 	DEPENDS
-	    memory_refresh
+	    memory_refresh_sim
 	)
 
     make_fuse(
@@ -164,6 +175,7 @@ foreach(testfile ${TESTBENCH_HDL_V})
 	${test_prj_file}
 	${test_top_lvl_module}
 	${TESTBENCH_DIR}
+	"${test_include_path}"
 	)
     add_dependencies(${PROJECT_NAME}_fuse.${test_top_lvl_module} ${testname}.prj)
 

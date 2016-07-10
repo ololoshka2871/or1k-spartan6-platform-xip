@@ -65,10 +65,10 @@ static unsigned int* default_ISR(unsigned int * registers) {
     return registers;
 }
 
-void setInterruptPriority(enum InterruptSources src, uint8_t prio) {
+void setInterruptPriority(enum InterruptSources src, uint8_t new_prio) {
     int i;
     int current_prio = -1;
-    if (prio >= IS_Count)
+    if (new_prio >= IS_Count)
         return;
     // find current prio
     for (int i = 0; i < IS_Count; ++i)
@@ -77,13 +77,13 @@ void setInterruptPriority(enum InterruptSources src, uint8_t prio) {
     if(current_prio == -1)
         return;
 
-    if (current_prio == prio)
+    if (current_prio == new_prio)
         return;
 
     struct src_handler _ISRs[IS_Count];
     memcpy(_ISRs, ISRs, sizeof(ISRs));
     isr_handler isr_fun = ISRs[current_prio].ISR;
-    if (current_prio > prio) {
+    if (current_prio > new_prio) {
         // shift fragment up
 
         // 1 ----                           1 ----
@@ -94,7 +94,7 @@ void setInterruptPriority(enum InterruptSources src, uint8_t prio) {
         // 6 ----                           6 ----
         memmove(&_ISRs[current_prio],
                 &_ISRs[current_prio + 1],
-                sizeof(struct src_handler) * (prio - current_prio));
+                sizeof(struct src_handler) * (current_prio - new_prio));
     } else {
         // shift fragment down
 
@@ -104,12 +104,12 @@ void setInterruptPriority(enum InterruptSources src, uint8_t prio) {
         // 4 ----                           3 ----
         // 5 current_prio                   4 ----
         // 6 ----                           6 ----
-        memmove(&_ISRs[prio + 1],
-                &_ISRs[prio],
-                sizeof(struct src_handler) * (current_prio - prio));
+        memmove(&_ISRs[new_prio + 1],
+                &_ISRs[new_prio],
+                sizeof(struct src_handler) * (new_prio - current_prio));
     }
-    _ISRs[prio].src = src;
-    _ISRs[prio].ISR = isr_fun;
+    _ISRs[new_prio].src = src;
+    _ISRs[new_prio].ISR = isr_fun;
     ENTER_CRITICAL();
     memcpy(ISRs, _ISRs, sizeof(ISRs));
     EXIT_CRITICAL();
@@ -130,7 +130,7 @@ isr_handler set_irq_handler(enum InterruptSources src, isr_handler handler) {
     return NULL;
 }
 
-irq_handler install_irq_global_handler(irq_handler handler) {
+irq_handler __attribute__((noinline)) install_irq_global_handler(irq_handler handler) {
     asm volatile("l.sys 5");
     return handler; // old handler value from syscall
 }
