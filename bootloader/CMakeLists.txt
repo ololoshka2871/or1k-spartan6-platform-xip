@@ -43,8 +43,6 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH}
 
 INCLUDE("or1k_toolchain")
 
-add_subdirectory(hw)
-
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
     add_subdirectory(gdb_stub)
     SET(BOOT_LIB	    gdb_stub)
@@ -54,26 +52,14 @@ else()
     SET(BOOT_LIB    boot)
 endif()
 
-
-SET(PROJECT_SOURCES
-    main.c
-    )
-
-include_directories(
-    .
-    hw
-    )
-
 math(EXPR MAIN_MEMOR_SIZE_B "${FPGA_DP_MEMORY_USE} * 16 * 1024 / 8")
 configure_file(${LD_SCRIPT_FILE_IN} ${LD_SCRIPT_FILE} @ONLY)
 
 add_executable(${PROJECT_NAME}.elf
     ${BOOT_S}
-    ${PROJECT_SOURCES}
     )
 target_link_libraries(${PROJECT_NAME}.elf
     ${BOOT_LIB}
-    hw
     )
 
 add_executable(${PROJECT_NAME}_sim.elf
@@ -82,7 +68,6 @@ add_executable(${PROJECT_NAME}_sim.elf
     )
 target_link_libraries(${PROJECT_NAME}_sim.elf
     ${BOOT_LIB_NOTRAP}
-    hw
     )
 
 function(elf2hex ELF_FILE HEX_FILE)

@@ -35,6 +35,10 @@ module tb_top;
 	
 	reg rst = 1'b1;
 
+        wire     flash_CS;
+        wire     sck_o;
+        wire     mosi_o;
+
 	// Bidirs
 
 	// Instantiate the Unit Under Test (UUT)
@@ -43,7 +47,11 @@ module tb_top;
 		.rx(rx), 
 		.tx(tx),
 		.leds_io(leds_io),
-		.rst_i(rst)
+                .rst_i(rst),
+                .flash_CS(flash_CS),
+                .sck_o(sck_o),
+                .mosi_o(mosi_o),
+                .miso_i(1'b0)
 	);
 
 	initial begin

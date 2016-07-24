@@ -96,7 +96,7 @@ module soc_pif8
     // I/O bus
     input [31:0]        io_addr_i,
     input [31:0]        io_data_i,
-    output reg [31:0]   io_data_o,
+    output [31:0]       io_data_o,
     input               io_we_i,
     input               io_stb_i,
     output reg          io_ack_o
@@ -209,38 +209,25 @@ always @ (posedge clk_i or posedge rst_i)
 begin
    if (rst_i == 1'b1)
    begin
-       io_data_o <= 32'b0;
        io_ack_o  <= 1'b0;
    end
    else
    begin
-       if (io_stb_i)
-       begin
-           // Decode 4-bit peripheral select
-           case (io_addr_i[11:8])
-           // Peripheral 0
-           4'd 0 : io_data_o  <= periph0_data_i;
-           // Peripheral 1
-           4'd 1 : io_data_o  <= periph1_data_i;
-           // Peripheral 2
-           4'd 2 : io_data_o  <= periph2_data_i;
-           // Peripheral 3
-           4'd 3 : io_data_o  <= periph3_data_i;
-           // Peripheral 4
-           4'd 4 : io_data_o  <= periph4_data_i;
-           // Peripheral 5
-           4'd 5 : io_data_o  <= periph5_data_i;
-           // Peripheral 6
-           4'd 6 : io_data_o  <= periph6_data_i;
-           // Peripheral 7
-           4'd 7 : io_data_o  <= periph7_data_i;
-
-           default :  io_data_o  <= 32'h00000000;
-           endcase
-       end
-
        io_ack_o  <= io_stb_i;
    end
 end
+
+wire[2:0] base = io_addr_i[11:8];
+
+assign io_data_o =
+    (base == 4'd 0) ? periph0_data_i :
+    (base == 4'd 1) ? periph1_data_i :
+    (base == 4'd 2) ? periph2_data_i :
+    (base == 4'd 3) ? periph3_data_i :
+    (base == 4'd 4) ? periph4_data_i :
+    (base == 4'd 5) ? periph5_data_i :
+    (base == 4'd 6) ? periph6_data_i :
+    (base == 4'd 7) ? periph7_data_i :
+    32'h00000000;
 
 endmodule

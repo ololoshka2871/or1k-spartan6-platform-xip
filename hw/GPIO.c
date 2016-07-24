@@ -1,5 +1,5 @@
 /****************************************************************************
- * src/main.c
+ * GPIO.c
  *
  *   Copyright (C) 2016 Shilo_XyZ_. All rights reserved.
  *   Author:  Shilo_XyZ_ <Shilo_XyZ_<at>mail.ru>
@@ -33,27 +33,53 @@
  *
  ****************************************************************************/
 
-#ifndef _GPIO_H_
-#define _GPIO_H_
+#include "GPIO.h"
 
-#include <stdint.h>
-
-#define GPIO_BASE			(0x11000000)
-
-// bits
-#define GPIO_CTRL_INTE		(1 << 0)
-#define GPIO_CTRL_INTS		(1 << 1)
-
-enum GPIO_PORTS {
-	GPIO_PORTA = GPIO_BASE + 0,
+struct sGPIO {
+	uint32_t IN; // input
+	uint32_t OUT; // output
+	uint32_t OE; // direction
+	uint32_t INTE; // interrupt mask
+	uint32_t PTRIG; // manual trigger interrupt
+	uint32_t AUX;  // unimplemented in hw
+	uint32_t CTRL; // control
+	uint32_t INTS; // interrupt flags
+	uint32_t ECLK; // unimplemented in hw
+	uint32_t NEC; // unimplemented in hw
 };
 
-typedef volatile void* GPIO;
+GPIO gpio_port_init(enum GPIO_PORTS port, uint32_t direction) {
+	volatile struct sGPIO* result = (volatile struct sGPIO*)port; // base address
+	result->OUT = 0;
+	result->OE = direction;
+	result->CTRL &= ~GPIO_CTRL_INTE;
 
-GPIO gpio_port_init(enum GPIO_PORTS port, uint32_t direction);
-void gpio_port_set_dir(GPIO gpio, uint32_t direction);
-void gpio_port_set_all(GPIO gpio, uint32_t val);
-void gpio_port_set_val(GPIO gpio, uint32_t set_mask, uint32_t unset_mask);
-uint32_t gpio_port_get_val(GPIO gpio);
+	return (GPIO)result;
+}
 
-#endif /* _GPIO_H_ */
+
+void gpio_port_set_dir(GPIO gpio, uint32_t direction) {
+	volatile struct sGPIO* p = (volatile struct sGPIO*)gpio;
+	p->OE = direction;
+}
+
+
+void gpio_port_set_all(GPIO gpio, uint32_t val) {
+	volatile struct sGPIO* p = (volatile struct sGPIO*)gpio;
+	p->OUT = val;
+}
+
+
+void gpio_port_set_val(GPIO gpio, uint32_t set_mask, uint32_t unset_mask) {
+	uint32_t v = gpio_port_get_val(gpio);
+	v &= ~unset_mask;
+	v |= set_mask;
+	gpio_port_set_all(gpio, v);
+}
+
+
+uint32_t gpio_port_get_val(GPIO gpio) {
+	return ((volatile struct sGPIO*)gpio)->IN;
+}
+
+

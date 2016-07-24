@@ -1,5 +1,5 @@
 /****************************************************************************
- * src/main.c
+ * gdb_main.c
  *
  *   Copyright (C) 2016 Shilo_XyZ_. All rights reserved.
  *   Author:  Shilo_XyZ_ <Shilo_XyZ_<at>mail.ru>
@@ -33,8 +33,35 @@
  *
  ****************************************************************************/
 
-#include <string.h>
+#include "gdb-stub-sections.h"
 
-#include "boot_spi.h"
+extern int  GDB_STUB_SECTION_BSS  _initial_trap;
 
+extern void GDB_STUB_SECTION_TEXT try_load(void);
+extern void GDB_STUB_SECTION_TEXT gdb_putstr(const char *str);
 
+//-----------------------------------------------------------------
+// gdb_main
+//-----------------------------------------------------------------
+void GDB_STUB_SECTION_TEXT gdb_main(void)
+{
+#ifndef NDEBUG
+    gdb_putstr("\r\nGDB Debug Agent\r\n");
+
+    // Jump to debugger
+#ifdef STANDART_INIT
+    _initial_trap = 1;
+#else
+    /*
+     * please add following commands to GDB initialisation
+     * (gdb) set remote interrupt-on-connect
+     * (gdb) break main
+     * (gdb) load
+     * (gdb) set $pc=_start
+     */
+    _initial_trap = 0;
+#endif /* STANDART_INIT */
+    asm volatile ("l.trap 0");
+#endif /* NDEBUG */
+    try_load();
+}

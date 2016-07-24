@@ -34,10 +34,13 @@
 // Free Software Foundation, Inc., 59 Temple Place, Suite 330, 
 // Boston, MA  02111-1307  USA
 //-----------------------------------------------------------------
+
 #include "gdb_hw.h"
 #include "gdb.h"
 
 #include "gdb-stub-sections.h"
+
+#include "boot_spi.h"
 
 //-----------------------------------------------------------------
 // Defines
@@ -68,12 +71,29 @@
 #define REG_SR                                34
 #define REG_NUM                               35
 
+#define HEADER_W1                             0x03030303
+#define HEADER_W2                             0x1f1f1f1f
+
+//-----------------------------------------------------------------
+// types
+//-----------------------------------------------------------------
+
+typedef void (*pfEntry)(void) __attribute__((noreturn));
+
+struct Hader {
+    unsigned int test_start;
+    unsigned int *text_dest;
+    unsigned int text_len;
+
+    pfEntry      Entry_point;
+};
+
 //-----------------------------------------------------------------
 // Locals
 //-----------------------------------------------------------------
 static char       GDB_STUB_SECTION_BSS    _inbuffer[MAX_BUF_SIZE];
 static char       GDB_STUB_SECTION_BSS    _outbuffer[MAX_BUF_SIZE];
-static int        GDB_STUB_SECTION_BSS    _initial_trap;
+       int        GDB_STUB_SECTION_BSS    _initial_trap;
 static const char GDB_STUB_SECTION_RODATA _hex_char[] = "0123456789abcdef" ;
 
 static GDB_STUB_SECTION_BSS unsigned int * (*syscall_handler)(unsigned int *registers);
@@ -326,15 +346,14 @@ gdb_syscall(unsigned int *registers)
       //---------------------------------------------------
       // l.sys 3 -> exit(r3)
       //---------------------------------------------------
-      case 3:
+      case 3: // TODO!!!!
           *ptr++ = 'W';
           *ptr++ = _hex_char[(registers[REG_ARG0] >> 4) & 0xf];
           *ptr++ = _hex_char[registers[REG_ARG0] & 0xf];
           *ptr++ = 0;
           gdb_send (_outbuffer);
 
-          // Remain in GDB stub...
-          break;
+          return registers;
       //---------------------------------------------------
       // l.sys 4 -> set syscall_handler = r3
       //---------------------------------------------------
@@ -378,6 +397,8 @@ interrupt_handler(unsigned int *registers)
 {
     if (irq_handler)
         return irq_handler(registers);
+    else
+        return registers;
 }
 
 //-----------------------------------------------------------------
@@ -390,7 +411,6 @@ gdb_exception(unsigned int *registers, unsigned int reason)
     unsigned int len;
     unsigned int val;
     unsigned int regnum;
-    char *str;
     char *ptr;    
     int flush_caches = 0;
     
@@ -579,30 +599,55 @@ gdb_exception(unsigned int *registers, unsigned int reason)
 }
 
 //-----------------------------------------------------------------
-// gdb_main
+// FATAL_no_bootable_code_found
 //-----------------------------------------------------------------
-extern void main(void);
-
-void GDB_STUB_SECTION_TEXT gdb_main(void)
-{
-#ifndef NDEBUG
-    gdb_putstr("\r\nGDB Debug Agent\r\n");
-
-    // Jump to debugger
-#ifdef STANDART_INIT
-    _initial_trap = 1;
-#else
-    /*
-     * please add following commands to GDB initialisation
-     * (gdb) set remote interrupt-on-connect
-     * (gdb) break main
-     * (gdb) load
-     * (gdb) set $pc=_start
-     */
-    _initial_trap = 0;
-#endif /* STANDART_INIT */
-    asm volatile ("l.trap 0");
-#endif /* NDEBUG */
-    while (1)
-        main();
+static void GDB_STUB_SECTION_TEXT FATAL_no_bootable_code_found(int code) {
+    gdb_putstr("Boot error: ");
+    gdb_putchar('0' + code);
+    while(1);
 }
+
+//-----------------------------------------------------------------
+// try_load
+//-----------------------------------------------------------------
+void GDB_STUB_SECTION_TEXT try_load(void) {
+    pfEntry user_code_entry = 0;
+    {
+        uint32_t buf;
+
+        // detect
+        struct Flash_ID flashid = spi_probe_flash(1, 1);
+
+        if (flashid.cs_found < 0)
+            FATAL_no_bootable_code_found(0);
+
+        for (uint32_t addr = 0; addr < ((1ul << 25) - 1);
+            addr += sizeof(uint32_t)) {
+            spi_flash_read(flashid.cs_found, addr, (unsigned char*)&buf,
+                           sizeof(uint32_t));
+            if (buf == HEADER_W1) {
+                spi_flash_read(flashid.cs_found, addr + sizeof(uint32_t),
+                               (unsigned char*)&buf, sizeof(uint32_t));
+                if (buf == HEADER_W2) {
+                    addr += 2 * sizeof(uint32_t);
+                    struct Hader user_code_hader;
+                    spi_flash_read(flashid.cs_found, addr,
+                                   (unsigned char*)&user_code_hader,
+                                   sizeof(struct Hader));
+                    gdb_putstr("Firmware found, loading");
+                    spi_flash_read(flashid.cs_found, user_code_hader.test_start,
+                                   (unsigned char*)user_code_hader.text_dest,
+                                   user_code_hader.text_len);
+                    user_code_entry = user_code_hader.Entry_point;
+                    break;
+                }
+            }
+        }
+    }
+    if (user_code_entry) {
+        gdb_putstr("Entering user application..");
+        user_code_entry();
+    } else
+        FATAL_no_bootable_code_found(1);
+}
+

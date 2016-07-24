@@ -66,7 +66,6 @@ static unsigned int* default_ISR(unsigned int * registers) {
 }
 
 void setInterruptPriority(enum InterruptSources src, uint8_t new_prio) {
-    int i;
     int current_prio = -1;
     if (new_prio >= IS_Count)
         return;

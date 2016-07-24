@@ -46,6 +46,7 @@ find_path (
 	/opt
 	/mnt
 	/mnt/Steam/Xilinx/14.3/ISE_DS/ISE/bin/lin64
+	/mnt/ssd_build/Xilinx/14.3/ISE_DS/ISE/bin/lin64
      )
 
 if(XILINX_DIR)

@@ -56,7 +56,12 @@ module top
     inout wire[3:0] leds_io,
 
     // reset CPU key
-    input wire	    rst_i
+    input wire	    rst_i,
+
+    inout  wire     flash_CS,      // spi flash CS wire
+    output wire     sck_o,         // serial clock output
+    output wire     mosi_o,        // MasterOut SlaveIN
+    input  wire     miso_i         // MasterIn SlaveOut
 );
 
 //-----------------------------------------------------------------
@@ -82,6 +87,7 @@ wire [31:0]         soc_data_r;
 wire                soc_we;
 wire                soc_stb;
 wire                soc_ack;
+wire		    soc_cyc;
 
 wire [31:0]         fm_addr;
 wire [31:0]         fm_data_w;
@@ -116,6 +122,7 @@ wire[3:0]	    GPIO_o;
 wire[3:0]	    GPIO_i;
 
 wire		    clk_io;
+wire[6:0]           spi_cs_o;
 
 //-----------------------------------------------------------------
 // Instantiation
@@ -236,7 +243,7 @@ u_cpu
     .dmem2_sel_o(/*open*/),
     .dmem2_we_o(soc_we),
     .dmem2_stb_o(soc_stb),
-    .dmem2_cyc_o(/*open*/),
+    .dmem2_cyc_o(soc_cyc),
     .dmem2_cti_o(/*open*/),
     .dmem2_stall_i(1'b0),
     .dmem2_ack_i(soc_ack)
@@ -268,7 +275,14 @@ u_soc
     .io_data_o(soc_data_r),    
     .io_we_i(soc_we),
     .io_stb_i(soc_stb),
-    .io_ack_o(soc_ack)
+    .io_ack_o(soc_ack),
+    .io_cyc_i(soc_cyc),
+
+    .sck_o(sck_o),
+    .mosi_o(mosi_o),
+    .miso_i(miso_i),
+
+    .spi_cs_o(spi_cs_o)
 );
 
 //-----------------------------------------------------------------
@@ -304,6 +318,9 @@ begin : iobuf_gen
     );
 end
 endgenerate
+
+// flash_CS
+assign flash_CS = spi_cs_o[0];
 
 //-----------------------------------------------------------------
 // Unused pins

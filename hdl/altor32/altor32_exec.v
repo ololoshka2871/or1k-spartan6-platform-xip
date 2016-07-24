@@ -35,8 +35,8 @@
 // Boston, MA  02111-1307  USA
 //-----------------------------------------------------------------
 
-//`define CONF_CORE_DEBUG
-//`define CONF_CORE_TRACE
+`define CONF_CORE_DEBUG
+`define CONF_CORE_TRACE
 
 //-----------------------------------------------------------------
 // Module - Instruction Execute

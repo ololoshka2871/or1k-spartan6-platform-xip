@@ -35,9 +35,9 @@
 
 cmake_minimum_required(VERSION 2.8.5)
 
-SET(GDB_HW_SRC		    gdb_hw.c)
-SET(GDB_NORMAL_SRC	    gdb.c)
-SET(GDB_NOTRAP_SRC	    gdb_notrap.c)
+SET(GDB_HW_SRC		    gdb_hw.c gdb.c boot_spi.c)
+SET(GDB_NORMAL_SRC	    gdb_main.c)
+SET(GDB_NOTRAP_SRC	    gdb_main_notrap.c)
 
 INCLUDE_DIRECTORIES(.)
 

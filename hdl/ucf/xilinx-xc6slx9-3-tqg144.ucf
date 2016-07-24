@@ -14,3 +14,9 @@ NET "leds_io[0]" LOC = P97;
 #reset CPU
 NET "rst_i" LOC = P16;
 
+# SPI
+NET "flash_CS" LOC = P38
+NET "sck_o" LOC = P70
+NET "mosi_o" LOC = P64
+NET "miso_i" LOC = P65
+

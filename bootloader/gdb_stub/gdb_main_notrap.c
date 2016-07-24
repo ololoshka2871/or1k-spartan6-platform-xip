@@ -1,5 +1,5 @@
 /****************************************************************************
- * src/main.c
+ * gdb_main_notrap.c
  *
  *   Copyright (C) 2016 Shilo_XyZ_. All rights reserved.
  *   Author:  Shilo_XyZ_ <Shilo_XyZ_<at>mail.ru>
@@ -33,8 +33,18 @@
  *
  ****************************************************************************/
 
-#include <string.h>
+#include "gdb-stub-sections.h"
 
-#include "boot_spi.h"
+extern void GDB_STUB_SECTION_TEXT try_load(void);
+extern void GDB_STUB_SECTION_TEXT gdb_putstr(const char *str);
 
-
+//-----------------------------------------------------------------
+// gdb_main
+//-----------------------------------------------------------------
+void GDB_STUB_SECTION_TEXT gdb_main(void)
+{
+#ifndef NDEBUG
+    gdb_putstr("G");
+#endif /* NDEBUG */
+    try_load();
+}

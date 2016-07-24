@@ -57,7 +57,14 @@ module soc
     io_data_o,
     io_we_i,
     io_stb_i,    
-    io_ack_o
+    io_ack_o,
+    io_cyc_i,
+
+    // SPI
+    sck_o,
+    mosi_o,
+    miso_i,
+    spi_cs_o
 );
 
 //-----------------------------------------------------------------
@@ -86,6 +93,12 @@ output [31:0]           io_data_o /*verilator public*/;
 input                   io_we_i /*verilator public*/;
 input                   io_stb_i /*verilator public*/;
 output                  io_ack_o /*verilator public*/;
+input                   io_cyc_i /*verilator public*/;
+// SPI
+output                  sck_o /*verilator public*/;
+output                  mosi_o /*verilator public*/;
+input                   miso_i /*verilator public*/;
+output [6:0]            spi_cs_o /*verilator public*/;
 
 //-----------------------------------------------------------------
 // Registers / Wires
@@ -110,6 +123,13 @@ wire [31:0]        intr_data_o;
 wire [31:0]        intr_data_i;
 wire               intr_we;
 wire               intr_stb;
+
+wire [7:0]         spi_addr;
+wire [31:0]        spi_data_o;
+wire [31:0]        spi_data_i;
+wire               spi_we;
+wire               spi_stb;
+wire               spi_intr;
 
 //-----------------------------------------------------------------
 // Peripheral Interconnect
@@ -152,12 +172,12 @@ u2_soc
     .periph2_we_o(intr_we),
     .periph2_stb_o(intr_stb),
 
-    // Unused = 0x12000300 - 0x120003FF
-    .periph3_addr_o(/*open*/),
-    .periph3_data_o(/*open*/),
-    .periph3_data_i(32'h00000000),
-    .periph3_we_o(/*open*/),
-    .periph3_stb_o(/*open*/),
+    // SPI = 0x12000300 - 0x120003FF
+    .periph3_addr_o(spi_addr),
+    .periph3_data_o(spi_data_o),
+    .periph3_data_i(spi_data_i),
+    .periph3_we_o(spi_we),
+    .periph3_stb_o(spi_stb),
 
     // Unused = 0x12000400 - 0x120004FF
     .periph4_addr_o(/*open*/),
@@ -248,7 +268,7 @@ u_intr
     .intr0_i(uart0_intr),
     .intr1_i(timer_intr_systick),
     .intr2_i(timer_intr_hires),
-    .intr3_i(1'b0),
+    .intr3_i(spi_intr),
     .intr4_i(1'b0),
     .intr5_i(1'b0),
     .intr6_i(1'b0),
@@ -261,6 +281,31 @@ u_intr
     .data_i(intr_data_o),
     .we_i(intr_we),
     .stb_i(intr_stb)
+);
+
+//-----------------------------------------------------------------
+// SPI Controller
+//-----------------------------------------------------------------
+spi_boot
+#(
+    .WB_DATA_WIDTH(32)
+) spi (
+    .clk_i(clk_i),
+    .rst_i(rst_i),
+    .cyc_i(io_cyc_i),
+    .stb_i(spi_stb),
+    .adr_i(spi_addr),
+    .we_i(spi_we),
+    .dat_i(spi_data_o),
+    .dat_o(spi_data_i),
+    .ack_o(/*open*/),
+    .inta_o(spi_intr),
+
+    .sck_o(sck_o),
+    .mosi_o(mosi_o),
+    .miso_i(miso_i),
+
+    .cs_o(spi_cs_o)
 );
 
 //-------------------------------------------------------------------
