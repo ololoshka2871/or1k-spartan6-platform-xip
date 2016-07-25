@@ -38,18 +38,30 @@
 
 #include <stdint.h>
 #include "gdb-stub-sections.h"
+#include "mem_map.h"
 
-#define REG32               (volatile unsigned int*)
+// SPSR
+#define SPIF        (1 << 7)            // Serial Peripheral Interrupt Flag
+#define WCOL        (1 << 6)            // Write Collision
+#define WFFULL      (1 << 3)            // Write FIFO Full
+#define WFEMPTY     (1 << 2)            // Write FIFO Empty
+#define RFFULL      (1 << 1)            // Read FIFO Full
+#define RFEMPTY     (1 << 0)            // Read FIFO Empty
 
-#define IO_BASE             0x12000000
+// SPCR bits
+#define SPIE        (1 << 7)            // Serial Peripheral Interrupt Enable
+#define SPE         (1 << 6)            // Serial Peripheral Enable
+#define MSTR        (1 << 4)            // Master Mode Select
+#define CPOL        (1 << 3)            // Clock Polarity
+#define CPHA        (1 << 2)            // Clock Phase
+#define SPR_SHIFT   (0)
+#define SPR_MASK    (0b11 << SPR_SHIFT) // SPI Clock Rate Select
 
-#define BOOT_SPI_BASE		(IO_BASE + 0x300)
-
-#define BOOT_SPI_SPCR       (*(REG32 (BOOT_SPI_BASE + 0x00)))
-#define BOOT_SPI_SPSR       (*(REG32 (BOOT_SPI_BASE + 0x04)))
-#define BOOT_SPI_SPDR       (*(REG32 (BOOT_SPI_BASE + 0x08)))
-#define BOOT_SPI_SPER       (*(REG32 (BOOT_SPI_BASE + 0x0C)))
-#define BOOT_SPI_CS_SEL     (*(REG32 (BOOT_SPI_BASE + 0x10)))
+// SPER
+#define ICNT_SHIFT  (6)
+#define ICNT_MASK   (0b11 << ICNT_SHIFT)// Interrupt Count
+#define ESPR_SHIFT  (0)
+#define ESPR_MASK   (0b11 << ESPR_SHIFT)// Extended SPI Clock Rate Select
 
 enum enSpiErr {
     SPI_OK = 0,
@@ -59,9 +71,9 @@ enum enSpiErr {
 
 enum enSPIMode {
     SPI_MODE0 = 0,
-    SPI_MODE1 = 1,
-    SPI_MODE2 = 2,
-    SPI_MODE3 = 3,
+    SPI_MODE1 = CPHA,
+    SPI_MODE2 = CPOL,
+    SPI_MODE3 = CPOL | CPHA,
 };
 
 enum enSPIClockDevider {
@@ -77,41 +89,6 @@ enum enSPIClockDevider {
     SPI_CLOCK_DEV_1024 = 9,
     SPI_CLOCK_DEV_2048 = 10,
     SPI_CLOCK_DEV_4096 = 11,
-};
-
-union SPSR_bits {
-    struct {
-        unsigned SPIF:1;     // Serial Peripheral Interrupt Flag
-        unsigned WCOL:1;     // Write Collision
-        unsigned Reserved:2; //
-        unsigned WFFULL:1;   // Write FIFO Full
-        unsigned WFEMPTY:1;  // Write FIFO Empty
-        unsigned RFFULL:1;   // Read FIFO Full
-        unsigned RFEMPTY:1;  // Read FIFO Empty /* bit 0*/
-    } __attribute__((packed));
-    uint8_t SPSR;
-};
-
-union SPCR_bits {
-    struct {
-        unsigned SPIE:1;     // Serial Peripheral Interrupt Enable
-        unsigned SPE:1;      // Serial Peripheral Enable
-        unsigned Reserved:1; //
-        unsigned MSTR:1;     // Master Mode Select
-        unsigned CPOL:1;     // Clock Polarity
-        unsigned CPHA:1;     // Clock Phase
-        unsigned SPR:2;      // SPI Clock Rate Select
-    } __attribute__((packed));
-    uint8_t SPCR;
-};
-
-union SPER_bits {
-    struct {
-        unsigned ICNT:2;      // Interrupt Count
-        unsigned Reserved:4;
-        unsigned ESPR:2;      // Extended SPI Clock Rate Select
-    } __attribute__((packed));
-    uint8_t SPER;
 };
 
 struct Flash_ID {

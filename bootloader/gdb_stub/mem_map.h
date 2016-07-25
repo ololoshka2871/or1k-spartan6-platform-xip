@@ -16,9 +16,10 @@
 //-----------------------------------------------------------------
 // Peripheral Base Addresses
 //-----------------------------------------------------------------
-#define UART_BASE               (IO_BASE + 0x000)
-#define TIMER_BASE              (IO_BASE + 0x100)
-#define INTR_BASE               (IO_BASE + 0x200)
+#define UART_BASE           (IO_BASE + 0x000)
+#define TIMER_BASE          (IO_BASE + 0x100)
+#define INTR_BASE           (IO_BASE + 0x200)
+#define SPI_BASE            (IO_BASE + 0x300)
 
 //-----------------------------------------------------------------
 // Interrupts
@@ -44,6 +45,13 @@
 #define IRQ_MASK            (*(REG32 (INTR_BASE + 0x00)))
 #define IRQ_MASK_SET        (*(REG32 (INTR_BASE + 0x00)))
 #define IRQ_MASK_CLR        (*(REG32 (INTR_BASE + 0x04)))
-#define IRQ_STATUS          (*(REG32 (INTR_BASE + 0x08)))    
+#define IRQ_STATUS          (*(REG32 (INTR_BASE + 0x08)))
+
+// SPI
+#define SPI_SPCR            (*(REG32 (SPI_BASE + 0x00)))
+#define SPI_SPSR            (*(REG32 (SPI_BASE + 0x04)))
+#define SPI_SPDR            (*(REG32 (SPI_BASE + 0x08)))
+#define SPI_SPER            (*(REG32 (SPI_BASE + 0x0C)))
+#define SPI_CS_SEL          (*(REG32 (SPI_BASE + 0x10)))
 
 #endif 
