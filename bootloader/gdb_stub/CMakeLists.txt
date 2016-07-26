@@ -41,6 +41,8 @@ SET(GDB_NOTRAP_SRC	    gdb_main_notrap.c)
 
 INCLUDE_DIRECTORIES(.)
 
+add_definitions(-DHEADER_W1=${HEADER_W1} -DHEADER_W2=${HEADER_W2})
+
 add_library(gdb_stub STATIC ${GDB_HW_SRC} ${GDB_NORMAL_SRC})
 add_library(gdb_stub_notrap STATIC ${GDB_HW_SRC} ${GDB_NOTRAP_SRC})
 

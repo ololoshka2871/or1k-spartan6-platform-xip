@@ -71,8 +71,13 @@
 #define REG_SR                                34
 #define REG_NUM                               35
 
+#ifndef HEADER_W1
 #define HEADER_W1                             0x03030303
+#endif
+
+#ifndef HEADER_W2
 #define HEADER_W2                             0x1f1f1f1f
+#endif
 
 //-----------------------------------------------------------------
 // types
@@ -616,11 +621,13 @@ void GDB_STUB_SECTION_TEXT try_load(void) {
         uint32_t buf;
 
         // detect
-        struct Flash_ID flashid = spi_probe_flash(1, 1);
+        gdb_putstr("Probing flash");
+        struct Flash_ID flashid = spi_probe_flash(1, 2);
 
-        if (flashid.cs_found < 0)
+        if (!flashid.cs_found)
             FATAL_no_bootable_code_found(0);
 
+        gdb_putstr("Start searching for hader");
         for (uint32_t addr = 0; addr < ((1ul << 25) - 1);
             addr += sizeof(uint32_t)) {
             spi_flash_read(flashid.cs_found, addr, (unsigned char*)&buf,

@@ -1,35 +1,18 @@
 
 MEMORY 
 { 
-  sram (rwx) : ORIGIN = 0x10000000, LENGTH = @MAIN_MEMOR_SIZE_B@
+  sram (rwx) : ORIGIN = @MAIN_MEMORY_BASE@, LENGTH = @MAIN_MEMORY_SIZE_B@ - 8
+  spcalc(rw) : ORIGIN = @MAIN_MEMORY_BASE@ + @MAIN_MEMORY_SIZE_B@ - 8, LENGTH = 8
 }
 
 ENTRY(__start)
 
 SECTIONS
 {
-  .boot.text :
+  .boot :
   {
       PROVIDE(_text_start = .);
       KEEP(*(.boot.*))	         /* boot code */
-      KEEP(*(.text.gdb_stub))    /* gdb-stub code */
-  } > sram
-
-  .boot.rodata :
-  {
-     . = ALIGN(4);
-     KEEP(*(.rodata.CSWTCH.99))
-     KEEP(*(.rodata.gdb_stub))  /* gdb-stub data */
-  } > sram
-
-  .boot.bss :
-  {
-      . = ALIGN(4);
-      PROVIDE(_bss_gdb_stub_start = .);
-      KEEP(*(.bss.gdb_stub))     /* gdb-stub bss */
-      . = ALIGN(4);
-      PROVIDE(_bss_gdb_stub_end = .);
-      . += 8;
   } > sram
 
   .text :
@@ -77,10 +60,11 @@ SECTIONS
     KEEP(*(.heap))
     __heap_end__ = .;
     __HeapLimit = __heap_end__;
-
-    /* Allocate room for stack */
-    .   =  ALIGN(8) ;
-    .   += 1024 ;
-    _sp =  . - 16;
   } > sram
+
+  .stackcalc :
+  {
+    PROVIDE(_sp = .);
+    LONG(0xDEADBEAF);
+  } > spcalc
 }

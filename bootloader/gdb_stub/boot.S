@@ -33,6 +33,7 @@ exception_return:
 .org    0x100
 vector_reset:
 __start:
+#ifdef _OWN_BOOTLOADER_SECTIONS
     # R4 = _bss_gdb_stub_start
     l.movhi r4,hi(_bss_gdb_stub_start);
     l.ori r4,r4,lo(_bss_gdb_stub_start);
@@ -47,6 +48,7 @@ BSS_GDB_STUB_CLEAR:
     l.addi r4, r4, 4         # r4 += 4
     l.bf  BSS_GDB_STUB_CLEAR # If SR[F] == 0, jump to BSS_GDB_STUB_CLEAR
     l.nop
+#endif
 
     //
 _start:

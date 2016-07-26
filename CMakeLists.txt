@@ -1,4 +1,5 @@
 #****************************************************************************
+#* CMakeLists.txt
 #*
 #*   Copyright (C) 2016 Shilo_XyZ_. All rights reserved.
 #*   Author:  Shilo_XyZ_ <Shilo_XyZ_<at>mail.ru>
@@ -47,20 +48,32 @@ set(CMAKE_MODULE_PATH
 
 find_package(Xilinx REQUIRED)
 
-set(PART_NAME	    "xc6slx9-3-tqg144"
+set(PART_NAME               "xc6slx9-3-tqg144"
     CACHE STRING "Xilinx FPGA model to synthesis")
-set(INPUT_CLOCK_MHZ 48
+set(INPUT_CLOCK_MHZ         48
     CACHE STRING "FPGA main clock source (MHz)")
-set(SPI_FLASH_CHIP  "W25Q32BV"
+set(SPI_FLASH_CHIP          "W25Q32BV"
     CACHE STRING "SPI flash memory part name")
-set(FPGA_DP_MEMORY_USE	32
+set(FPGA_DP_MEMORY_USE      32
     CACHE STRING "Number of RAMB16BWERs to use as main memory")
+
+set(HEADER_W1               0x03030303
+    CACHE STRING "Application syncronisation word 1")
+set(HEADER_W2               0x1f1f1f1f
+    CACHE STRING "Application syncronisation word 2")
+
+set(MAIN_MEMORY_BASE        0x10000000) # memory base address
+
 
 #add_subdirectory(tools)
 
 #---------------------------------bootloader------------------------------------
 add_subdirectory(bootloader)
 #--------------------------------/bootloader------------------------------------
+
+#-------------------------- ------application-----------------------------------
+add_subdirectory(application)
+#--------------------------------/application-----------------------------------
 
 
 #------------------------------------HDL----------------------------------------

@@ -55,7 +55,7 @@ void GDB_STUB_SECTION_TEXT gdb_main(void)
     /*
      * please add following commands to GDB initialisation
      * (gdb) set remote interrupt-on-connect
-     * (gdb) break main
+     * (gdb) break try_load
      * (gdb) load
      * (gdb) set $pc=_start
      */

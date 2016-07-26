@@ -1,5 +1,5 @@
 #****************************************************************************
-#* src/CMakeLists.txt
+#* CMakeLists.txt
 #*
 #*   Copyright (C) 2016 Shilo_XyZ_. All rights reserved.
 #*   Author:  Shilo_XyZ_ <Shilo_XyZ_<at>mail.ru>
@@ -41,19 +41,21 @@ project(or1k-spartan6-platform_bootloader ASM C)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH}
 	"${CMAKE_CURRENT_SOURCE_DIR}/cmake_modules/")
 
+set(LD_SCRIPT_FILE_IN  "${CMAKE_CURRENT_SOURCE_DIR}/link.ld.in")
+set(LD_SCRIPT_FILE     "${CMAKE_CURRENT_BINARY_DIR}/link.ld")
+
+math(EXPR MAIN_MEMORY_SIZE_B "${FPGA_DP_MEMORY_USE} * 16 * 1024 / 8")
+configure_file(${LD_SCRIPT_FILE_IN} ${LD_SCRIPT_FILE} @ONLY)
+
 INCLUDE("or1k_toolchain")
 
+add_subdirectory(gdb_stub)
+SET(BOOT_LIB_NOTRAP	    gdb_stub_notrap)
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-    add_subdirectory(gdb_stub)
-    SET(BOOT_LIB	    gdb_stub)
-    SET(BOOT_LIB_NOTRAP	    gdb_stub_notrap)
+    SET(BOOT_LIB    gdb_stub)
 else()
-    #add_subdirectory(boot)
-    SET(BOOT_LIB    boot)
+    SET(BOOT_LIB    gdb_stub_notrap)
 endif()
-
-math(EXPR MAIN_MEMOR_SIZE_B "${FPGA_DP_MEMORY_USE} * 16 * 1024 / 8")
-configure_file(${LD_SCRIPT_FILE_IN} ${LD_SCRIPT_FILE} @ONLY)
 
 add_executable(${PROJECT_NAME}.elf
     ${BOOT_S}
@@ -64,7 +66,6 @@ target_link_libraries(${PROJECT_NAME}.elf
 
 add_executable(${PROJECT_NAME}_sim.elf
     ${BOOT_S}
-    ${PROJECT_SOURCES}
     )
 target_link_libraries(${PROJECT_NAME}_sim.elf
     ${BOOT_LIB_NOTRAP}
@@ -104,5 +105,6 @@ elf2hex(${PROJECT_NAME}_sim.elf ${bootloader_notrap_HEX})
 
 add_custom_target(bootloader DEPENDS ${bootloader_HEX} ${bootloader_notrap_HEX})
 
+SET(BOOTLOADER_IMAGE_ELF        ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.elf         PARENT_SCOPE)
 SET(BOOTLOADER_IMAGE		${bootloader_HEX}	    PARENT_SCOPE)
 SET(BOOTLOADER_SIM_IMAGE	${bootloader_notrap_HEX}    PARENT_SCOPE)

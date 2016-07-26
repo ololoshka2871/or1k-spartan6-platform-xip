@@ -94,24 +94,24 @@ struct Flash_ID GDB_STUB_SECTION_TEXT
 spi_probe_flash(uint8_t cs_from, uint8_t cs_to) {
     struct Flash_ID result;
 
-    boot_spi_init(SPI_CLOCK_DEV_1024, SPI_MODE3);
+    boot_spi_init(SPI_CLOCK_DEV_512, SPI_MODE3);
     while(cs_from <= cs_to) {
         SPI_CS_SEL = cs_from;
 
         boot_spi_transfer(JEDEC_ID_COMMAND);
-        for(uint8_t i = 0; i < 3; ++i)
+        for(uint8_t i = 0; i < 4; ++i)
             ((uint8_t*)&result)[i] = boot_spi_transfer(0); // read 3 bytes
 
         SPI_CS_SEL = 0;
 
-        if (result.Manufacturer && result.Manufacturer != 0xff) {
+        if (result.Manufacturer && (result.Manufacturer != 0xff)) {
             result.cs_found = cs_from;
             break;
+        } else { // not found
+            result.cs_found = 0;
         }
 
         ++cs_from;
-        for (uint8_t i = 0; i < 10; ++i)
-            asm volatile("l.nop");
     }
     boot_spi_disable();
 
@@ -120,11 +120,11 @@ spi_probe_flash(uint8_t cs_from, uint8_t cs_to) {
 
 void GDB_STUB_SECTION_TEXT
 spi_flash_read(uint8_t cs_num, uint32_t offset, uint8_t* dest, uint32_t size) {
-    boot_spi_init(SPI_CLOCK_DEV_2, SPI_MODE3);
+    boot_spi_init(SPI_CLOCK_DEV_32, SPI_MODE3);
     SPI_CS_SEL = cs_num;
 
     boot_spi_transfer(size > 1 ? DATA_READ_FAST_COMMAND : DATA_READ_COMMAND);
-    for(uint8_t i = 16; i < 0xff; i -= 8)
+    for(int i = 16; i >= 0; i -= 8)
         boot_spi_transfer(offset >> i);
 
     if (size > 1) {

@@ -134,7 +134,7 @@ module simple_spi_top(
       end
 
   // write fifo
-  assign wfwe = wb_acc & (adr_i == 2'b10) & ack_o &  we_i;
+  assign wfwe = (adr_i == 2'b10) & wb_wr;
   assign wfov = wfwe & wffull;
 
   // dat_o
@@ -147,7 +147,7 @@ module simple_spi_top(
     endcase
 
   // read fifo
-  assign rfre = wb_acc & (adr_i == 2'b10) & ack_o & ~we_i;
+  assign rfre = wb_acc & (adr_i == 2'b10) & ~we_i;
 
   // ack_o
   always @(posedge clk_i or negedge rst_i)

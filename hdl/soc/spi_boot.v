@@ -111,7 +111,6 @@ begin
    begin
         if (cs_reg_sel & stb_i)
         begin
-            ack_cs <= 1'b1; // cs_ack if read/write
             if (we_i) // write
             begin
                 cs_reg <= data8_i[3:0];
@@ -127,6 +126,9 @@ always @ (posedge clk_i )
 begin
     if (~stb_i)
         ack_cs <= 1'b0;
+    else
+        if (cs_reg_sel & stb_i)
+            ack_cs <= 1'b1; // cs_ack if read/write
 end
 
 //-----------------------------------------------------------------
@@ -149,14 +151,13 @@ begin
     else
     begin
         case(cs_reg)
-        1'h0: cs_o <= ~7'b0000000;
-        1'h1: cs_o <= ~8'b0000001;
-        1'h2: cs_o <= ~8'b0000010;
-        1'h3: cs_o <= ~8'b0000100;
-        1'h4: cs_o <= ~8'b0001000;
-        1'h5: cs_o <= ~8'b0010000;
-        1'h6: cs_o <= ~8'b0100000;
-        1'h7: cs_o <= ~8'b1000000;
+        1'h0: cs_o <= ~7'b000000;
+        1'h1: cs_o <= ~7'b000001;
+        1'h2: cs_o <= ~7'b000010;
+        1'h3: cs_o <= ~7'b000100;
+        1'h4: cs_o <= ~7'b001000;
+        1'h5: cs_o <= ~7'b010000;
+        1'h6: cs_o <= ~7'b100000;
         endcase
     end
 end
