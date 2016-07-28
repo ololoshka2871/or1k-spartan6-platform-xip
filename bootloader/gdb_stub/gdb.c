@@ -86,12 +86,14 @@
 typedef void (*pfEntry)(void) __attribute__((noreturn));
 
 struct Hader {
-    unsigned int test_start;
+    unsigned int text_start;
     unsigned int *text_dest;
     unsigned int text_len;
+    unsigned int *bss_start;
+    unsigned int bss_len;
 
     pfEntry      Entry_point;
-};
+} __attribute__((packed));
 
 //-----------------------------------------------------------------
 // Locals
@@ -621,13 +623,13 @@ void GDB_STUB_SECTION_TEXT try_load(void) {
         uint32_t buf;
 
         // detect
-        gdb_putstr("Probing flash");
+        //gdb_putstr("Probing flash");
         struct Flash_ID flashid = spi_probe_flash(1, 2);
 
         if (!flashid.cs_found)
             FATAL_no_bootable_code_found(0);
 
-        gdb_putstr("Start searching for hader");
+        //gdb_putstr("Start searching for hader");
         for (uint32_t addr = 0; addr < ((1ul << 25) - 1);
             addr += sizeof(uint32_t)) {
             spi_flash_read(flashid.cs_found, addr, (unsigned char*)&buf,
@@ -636,15 +638,28 @@ void GDB_STUB_SECTION_TEXT try_load(void) {
                 spi_flash_read(flashid.cs_found, addr + sizeof(uint32_t),
                                (unsigned char*)&buf, sizeof(uint32_t));
                 if (buf == HEADER_W2) {
-                    addr += 2 * sizeof(uint32_t);
                     struct Hader user_code_hader;
-                    spi_flash_read(flashid.cs_found, addr,
+                    spi_flash_read(flashid.cs_found, addr + 2 * sizeof(uint32_t),
                                    (unsigned char*)&user_code_hader,
                                    sizeof(struct Hader));
-                    gdb_putstr("Firmware found, loading");
-                    spi_flash_read(flashid.cs_found, user_code_hader.test_start,
+                    if(user_code_hader.text_start != addr ||
+                        (void*)user_code_hader.text_dest < (void*)try_load ||
+                        (void*)user_code_hader.bss_start < (void*)try_load)
+                    {
+                        addr += sizeof(uint32_t);
+                        continue;
+                    }
+                    //gdb_putstr("Firmware found, loading");
+                    spi_flash_read(flashid.cs_found, user_code_hader.text_start,
                                    (unsigned char*)user_code_hader.text_dest,
                                    user_code_hader.text_len);
+                    //clear bss
+                    if (user_code_hader.bss_len) {
+                        while (user_code_hader.bss_len -= 4) {
+                            *user_code_hader.bss_start = 0;
+                            user_code_hader.bss_start++;
+                        }
+                    }
                     user_code_entry = user_code_hader.Entry_point;
                     break;
                 }
@@ -652,7 +667,7 @@ void GDB_STUB_SECTION_TEXT try_load(void) {
         }
     }
     if (user_code_entry) {
-        gdb_putstr("Entering user application..");
+        //gdb_putstr("Entering user application..");
         user_code_entry();
     } else
         FATAL_no_bootable_code_found(1);

@@ -39,7 +39,7 @@
 // synopsys translate_on
 `include "config.v"
 
-`define     CS_REGISTER_ADDR        3'b100
+`define     CS_REGISTER_ADDR        3'b101
 
 module spi_boot
 #(
@@ -65,27 +65,27 @@ module spi_boot
     output reg   [6:0]                  cs_o           // Crystall select control
 );
 
-wire[1:0]   addr2;
+wire[2:0]   addr3 = adr_i[4:2];
 wire[7:0]   data8_i;
-wire[7:0]   data8_o;
 reg [3:0]   cs_reg = 4'b0000;
 reg         ack_cs;
 wire        ack_spi;
 
-wire cs_reg_sel = (adr_i[4:2] == `CS_REGISTER_ADDR);
+wire cs_reg_sel = (addr3 == `CS_REGISTER_ADDR);
 wire cyc_spi = cyc_i & ~cs_reg_sel;
 
 assign ack_o = cs_reg_sel ? ack_cs : ack_spi;
 assign data8_i = dat_i[7:0];
-assign addr2 = adr_i[3:2];
 
+/*
+wire[7:0]   data8_o;
 
 simple_spi_top spi (
     .clk_i(clk_i),
     .rst_i(~rst_i),
     .cyc_i(cyc_spi),
     .stb_i(stb_i),
-    .adr_i(addr2),
+    .adr_i(addr3[1:0]),
     .we_i(we_i),
     .dat_i(data8_i),
     .dat_o(data8_o),
@@ -95,8 +95,30 @@ simple_spi_top spi (
     .sck_o(sck_o),
     .mosi_o(mosi_o),
     .miso_i(miso_i)
-);
+);*/
 
+wire[WB_DATA_WIDTH-1:0]   data_spi_o;
+
+tiny_spi #
+(
+    .SPI_MODE(-1)
+) spi (
+    .rst_i(rst_i),
+    .clk_i(clk_i),
+
+    .stb_i(stb_i),
+    .we_i(we_i),
+    .dat_o(data_spi_o),
+    .dat_i(dat_i),
+    .int_o(inta_o),
+    .adr_i(addr3),
+    .cyc_i(cyc_spi),
+    .ack_o(ack_spi),
+
+    .MOSI(mosi_o),
+    .SCLK(sck_o),
+    .MISO(miso_i)
+);
 
 //-----------------------------------------------------------------
 // Peripheral Register Write
@@ -136,7 +158,8 @@ end
 //-----------------------------------------------------------------
 assign dat_o = cs_reg_sel ?
     {{(WB_DATA_WIDTH - 4){1'b0}}, cs_reg} :
-    {{(WB_DATA_WIDTH - 8){1'b0}}, data8_o};
+//    {{(WB_DATA_WIDTH - 8){1'b0}}, data8_o};
+    data_spi_o;
 
 //------------------------------------------------------------------
 // cs selector

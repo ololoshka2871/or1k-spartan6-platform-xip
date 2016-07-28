@@ -14,9 +14,9 @@ SECTIONS
       LONG(@HEADER_W2@);
       LONG(@FLASH_TEXT_START@);             /* test_start (in flash) */
       LONG(ABSOLUTE(hader_start));          /* text_dest (Where to load) */
-      LONG(ABSOLUTE(_load_size))            /* size to load */
+      LONG(_data_end - hader_start)         /* size to load */
       LONG(ABSOLUTE(_bss_start))            /* start of bss_clear */
-      LONG(_bss_len)                        /* len to clear */
+      LONG(_bss_end - _bss_start)           /* len to clear */
       LONG(ABSOLUTE(main))                  /* address of entry point */
   } > sram
 
@@ -24,6 +24,7 @@ SECTIONS
   {
       . = ALIGN(4);
       PROVIDE(_text_start = .);
+      KEEP(*(.text.startup*))
       *(.text .text.*)                      /* remaining code */
       *(.rodata)                            /* read-only data (constants) */
       *(.rodata*)
@@ -47,7 +48,6 @@ SECTIONS
     . = ALIGN (8);
     PROVIDE(_edata = .);
     PROVIDE(_data_end = .);
-    PROVIDE(_load_size = . - hader_start);
   } > sram
    
   .bss : 
@@ -58,7 +58,6 @@ SECTIONS
     *(COMMON)
     . = ALIGN(4);
     PROVIDE(_bss_end = .);
-    PROVIDE(_bss_len = . - _bss_start);
     . += 8;
 
     __heap_start__ = .;

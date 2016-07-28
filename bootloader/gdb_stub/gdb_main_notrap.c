@@ -36,7 +36,7 @@
 #include "gdb-stub-sections.h"
 
 extern void GDB_STUB_SECTION_TEXT try_load(void);
-extern void GDB_STUB_SECTION_TEXT gdb_putstr(const char *str);
+extern void GDB_STUB_SECTION_TEXT gdb_putchar(char c);
 
 //-----------------------------------------------------------------
 // gdb_main
@@ -44,7 +44,7 @@ extern void GDB_STUB_SECTION_TEXT gdb_putstr(const char *str);
 void GDB_STUB_SECTION_TEXT gdb_main(void)
 {
 #ifndef NDEBUG
-    gdb_putstr("G");
+    gdb_putchar(0);
 #endif /* NDEBUG */
     try_load();
 }

@@ -65,16 +65,11 @@ set(HEADER_W2               0x1f1f1f1f
 set(MAIN_MEMORY_BASE        0x10000000) # memory base address
 
 
-#add_subdirectory(tools)
+add_subdirectory(tools)
 
 #---------------------------------bootloader------------------------------------
 add_subdirectory(bootloader)
 #--------------------------------/bootloader------------------------------------
-
-#-------------------------- ------application-----------------------------------
-add_subdirectory(application)
-#--------------------------------/application-----------------------------------
-
 
 #------------------------------------HDL----------------------------------------
 include(Xilinx_build)
@@ -125,6 +120,11 @@ make_bitgen(${BIT_FILE} ${UT_FILE_NAME} ${NCD_FILE})
 
 #------------------------------------/HDL---------------------------------------
 
+#---------------------------------application-----------------------------------
+add_subdirectory(application)
+add_custom_command(OUTPUT ${APPLICATION_BINARY} DEPENDS application)
+#--------------------------------/application-----------------------------------
+
 #----------------------------------programm-------------------------------------
 
 set(IMPACT_BATCH_FILE_CHIP_IN	${CMAKE_CURRENT_SOURCE_DIR}/programm_chip.cmd.in)
@@ -133,7 +133,8 @@ set(IMPACT_BATCH_FILE_FLASH_IN	${CMAKE_CURRENT_SOURCE_DIR}/programm_flash.cmd.in
 set(IMPACT_BATCH_FILE_CHIP	${CMAKE_CURRENT_BINARY_DIR}/programm_chip.cmd)
 set(IMPACT_BATCH_FILE_FLASH	${CMAKE_CURRENT_BINARY_DIR}/programm_flash.cmd)
 
-set(MCS_FLAH_IMAGE		${CMAKE_CURRENT_BINARY_DIR}/${TOP_MODULE_NAME}.mcs)
+#set(MCS_CONFIG_IMAGE		${CMAKE_CURRENT_BINARY_DIR}/${TOP_MODULE_NAME}.mcs)
+set(MCS_FIRMWARE_IMAGE		${CMAKE_CURRENT_BINARY_DIR}/firmware.mcs)
 
 set(IMPACT_LOG			${CMAKE_CURRENT_BINARY_DIR}/impact.log)
 
@@ -142,9 +143,16 @@ set(CDF_FILE			${CMAKE_CURRENT_BINARY_DIR}/cdffile.cdf)
 configure_file(${IMPACT_BATCH_FILE_CHIP_IN} ${IMPACT_BATCH_FILE_CHIP} @ONLY)
 configure_file(${IMPACT_BATCH_FILE_FLASH_IN} ${IMPACT_BATCH_FILE_FLASH} @ONLY)
 
-build_mcs(${MCS_FLAH_IMAGE} 0x0 ${BIT_FILE})
+build_mcs(${MCS_FIRMWARE_IMAGE}
+    0x0 ${BIT_FILE}
+    ${USER_CODE_FLASH_OFFSET} ${APPLICATION_BINARY}
+    )
+#append_data_to_file(${MCS_FIRMWARE_IMAGE} ${MCS_CONFIG_IMAGE}
+#    ${APPLICATION_BINARY} ${USER_CODE_FLASH_OFFSET})
+
+add_custom_target(flash_image DEPENDS ${MCS_FIRMWARE_IMAGE})
 
 make_impact_programm(${IMPACT_BATCH_FILE_CHIP} ${BIT_FILE})
-make_impact_flash(${IMPACT_BATCH_FILE_FLASH} ${MCS_FLAH_IMAGE})
+make_impact_flash(${IMPACT_BATCH_FILE_FLASH} ${MCS_FIRMWARE_IMAGE})
 
 #---------------------------------/programm-------------------------------------

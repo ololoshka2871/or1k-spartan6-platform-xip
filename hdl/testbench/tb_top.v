@@ -51,7 +51,7 @@ module tb_top;
                 .flash_CS(flash_CS),
                 .sck_o(sck_o),
                 .mosi_o(mosi_o),
-                .miso_i(1'b0)
+                .miso_i(mosi_o)
 	);
 
 	initial begin

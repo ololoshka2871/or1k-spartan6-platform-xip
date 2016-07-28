@@ -3,10 +3,11 @@
 LD_SCRIPT_TEMPLATE=$1
 BOOTLOADER_ELF=$2
 CMAKE_CACHE_FILE=$3
-TOOLCHAIN_PREFIX=$4
+USER_CODE_FLASH_OFFSET=$4
+TOOLCHAIN_PREFIX=$5
 
 if [[ $# < 2 ]]; then
-    echo "Usage: $0 <ld_script_template> <bootloader_elf> </path/to/CMakeCache.txt> [toolcahin-prefix]"
+    echo "Usage: $0 <ld_script_template> <bootloader_elf> </path/to/CMakeCache.txt> <user_code_flash_offset> [toolcahin-prefix]"
     exit 1
 fi
 
@@ -24,4 +25,5 @@ sed -e "s/@APP_START@/$APP_START/"\
     -e "s/@APP_SIZE@/$APP_SIZE/"\
     -e "s/@HEADER_W1@/$HEADER_W1/"\
     -e "s/@HEADER_W2@/$HEADER_W2/"\
+    -e "s/@FLASH_TEXT_START@/$USER_CODE_FLASH_OFFSET/"\
     $LD_SCRIPT_TEMPLATE

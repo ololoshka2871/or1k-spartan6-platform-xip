@@ -45,10 +45,9 @@ endfunction(build_prj)
 
 set(TOP_MODULE_NAME	top)
 
+add_subdirectory(scripts)
+
 #-------------------------------------------------------------------------------
-
-set(SCRIPTS_DIR		"${CMAKE_CURRENT_SOURCE_DIR}/scripts")
-
 set(PRJ_FILE_NAME	"${CMAKE_CURRENT_BINARY_DIR}/${TOP_MODULE_NAME}.prj")
 set(XST_FILE_NAME	"${CMAKE_CURRENT_BINARY_DIR}/${TOP_MODULE_NAME}.xst")
 set(XST_IN_FILE_NAME	"${CMAKE_CURRENT_SOURCE_DIR}/${TOP_MODULE_NAME}.xst.in")
@@ -125,6 +124,15 @@ set(ucf_filename    "${CMAKE_CURRENT_SOURCE_DIR}/ucf/xilinx-${PART_NAME}.ucf")
 
 configure_file(${ucf_filename} ${UCF_FILE_NAME} COPYONLY)
 
+#-------------------------------------ucp---------------------------------------
+
+set(ucp_filename    "${CMAKE_CURRENT_SOURCE_DIR}/ucf/xilinx-${PART_NAME}.ucp")
+file(STRINGS ${ucp_filename} USER_CODE_FLASH_OFFSET
+    REGEX "USER_CODE_FLASH_OFFSET=.*"
+    )
+string(REGEX REPLACE "USER_CODE_FLASH_OFFSET=(.*)" "\\1" USER_CODE_FLASH_OFFSET ${USER_CODE_FLASH_OFFSET})
+message(STATUS "User code will be at ${USER_CODE_FLASH_OFFSET} in flash")
+
 #-------------------------------------------------------------------------------
 
 #-------------------------------------sym---------------------------------------
@@ -139,7 +147,7 @@ endforeach()
 set(test_include_path -i ${CMAKE_CURRENT_BINARY_DIR} -i ${CMAKE_CURRENT_SOURCE_DIR})
 
 build_prj(XILINX_VERILOG_glbl_PRJ   "verilog work	%f\n"	${XILINX_VERILOG_glbl})
-build_prj(MEMORY_HDL_SIM_PRJ	    "verilog memory	%f\n"	"${MEMORY_HDL_SIM_V}")
+build_prj(MEMORY_HDL_SIM_PRJ	    "verilog memory	%f\n"	${MEMORY_HDL_SIM_V})
 
 foreach(testfile ${TESTBENCH_HDL_V})
     string(REGEX REPLACE ".*/(.*)\\.v" "\\1" testname ${testfile})
@@ -167,6 +175,8 @@ foreach(testfile ${TESTBENCH_HDL_V})
 	    ${SCRIPTS_DIR}/checksrc.sh ${test_prj_file}.tmp ${test_prj_file}
 	DEPENDS
 	    memory_refresh_sim
+        COMMENT
+            "Refreshing ${testname}.prj"
 	)
 
     make_fuse(
@@ -183,12 +193,11 @@ endforeach()
 
 #------------------------------------/sym---------------------------------------
 
-set(PRJ_FILE_NAME	${PRJ_FILE_NAME}	PARENT_SCOPE)
-set(TOP_MODULE_NAME	${TOP_MODULE_NAME}	PARENT_SCOPE)
-set(PRJ_TEXT		${PRJ_TEXT}		PARENT_SCOPE)
-set(XST_FILE_NAME	${XST_FILE_NAME}	PARENT_SCOPE)
-set(UT_FILE_NAME	${UT_FILE_NAME}		PARENT_SCOPE)
-set(UCF_FILE_NAME	${UCF_FILE_NAME}	PARENT_SCOPE)
+set(PRJ_FILE_NAME           ${PRJ_FILE_NAME}            PARENT_SCOPE)
+set(TOP_MODULE_NAME         ${TOP_MODULE_NAME}          PARENT_SCOPE)
+set(PRJ_TEXT                ${PRJ_TEXT}                 PARENT_SCOPE)
+set(XST_FILE_NAME           ${XST_FILE_NAME}            PARENT_SCOPE)
+set(UT_FILE_NAME            ${UT_FILE_NAME}		PARENT_SCOPE)
+set(UCF_FILE_NAME           ${UCF_FILE_NAME}            PARENT_SCOPE)
 
-set(ZPU_CORE_HDL	${ZPU_CORE_HDL}		PARENT_SCOPE)
-set(MY_MODULES_HDL	${MY_MODULES_HDL}	PARENT_SCOPE)
+set(USER_CODE_FLASH_OFFSET  ${USER_CODE_FLASH_OFFSET}   PARENT_SCOPE)

@@ -47,11 +47,4 @@
 #define IRQ_MASK_CLR        (*(REG32 (INTR_BASE + 0x04)))
 #define IRQ_STATUS          (*(REG32 (INTR_BASE + 0x08)))
 
-// SPI
-#define SPI_SPCR            (*(REG32 (SPI_BASE + 0x00)))
-#define SPI_SPSR            (*(REG32 (SPI_BASE + 0x04)))
-#define SPI_SPDR            (*(REG32 (SPI_BASE + 0x08)))
-#define SPI_SPER            (*(REG32 (SPI_BASE + 0x0C)))
-#define SPI_CS_SEL          (*(REG32 (SPI_BASE + 0x10)))
-
 #endif 

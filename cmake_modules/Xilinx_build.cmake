@@ -228,7 +228,7 @@ function(make_fuse LIBS BENCH_EXECUTABLE TB_PRJ TOP_LVL_MODULE TESTBENCH_DIR INC
 	WORKING_DIRECTORY
 	    ${TESTBENCH_DIR}
 	COMMENT
-	    "Making testbench ${BENCH_EXECUTABLE}"
+            "Making testbench ${TOP_LVL_MODULE}"
 	)
 
     add_custom_target(${PROJECT_NAME}_fuse.${TOP_LVL_MODULE}
@@ -247,26 +247,54 @@ function(build_mcs MCS_FLAH_IMAGE offset0 file0)
     set(argsList -u ${offset0} ${file0})
     set(files ${file0})
     if (${ARGC} GREATER 3)
-	SET(ARGS    ${ARGV})
-	list(REMOVE_AT ARGS 0 1 2)
-	list(LENGTH ARGS args_length)
-	math(EXPR args_length "${args_length} - 1")
-	foreach(i RANGE 0 ${args_length} 2)
-	    list(GET ARGS ${i} offset)
-	    math(EXPR i1 "${i} + 1")
-	    list(GET ARGS ${i1} file)
-	    list(APPEND argsList -u ${offset} ${file})
-	    list(APPEND files ${file})
-	endforeach()
+        SET(ARGS    ${ARGV})
+        list(REMOVE_AT ARGS 0 1 2)
+        list(LENGTH ARGS args_length)
+        math(EXPR args_length "${args_length} - 1")
+        foreach(i RANGE 0 ${args_length} 2)
+            list(GET ARGS ${i} offset)
+            math(EXPR i1 "${i} + 1")
+            list(GET ARGS ${i1} file)
+            list(APPEND argsList -data_file up ${offset} ${file})
+            list(APPEND files ${file})
+        endforeach()
     endif()
     set(product "${argsList}")
     add_custom_command(
-	OUTPUT
-	    ${MCS_FLAH_IMAGE}
-	COMMAND
-	    ${XILINX_promgen} -w -spi -c 0xff -p mcs -o ${MCS_FLAH_IMAGE} ${product}
-	DEPENDS
-	    "${files}"
-	)
-
+        OUTPUT
+            ${MCS_FLAH_IMAGE}
+        COMMAND
+            ${XILINX_promgen} -w -spi -c 0xff -p mcs -o ${MCS_FLAH_IMAGE} ${product}
+        DEPENDS
+            "${files}"
+        )
 endfunction(build_mcs)
+
+#function(build_mcs MCS_FLAH_IMAGE file)
+#    add_custom_command(
+#        OUTPUT
+#            ${MCS_FLAH_IMAGE}
+#        COMMAND
+#            ${XILINX_promgen} -w -spi -c 0xff
+#                -p mcs -o ${MCS_FLAH_IMAGE}
+#                -u 0x0 ${file}
+#        DEPENDS
+#            ${file}
+#        )
+#endfunction(build_mcs)
+
+function(append_data_to_file RESULT iHEX_FILE BINARY_FILE OFFSET)
+    set(iHEX_FILE2BIN   ${iHEX_FILE}.bin)
+    set(RESULT2BIN      ${RESULT}.bin)
+    add_custom_command(
+        OUTPUT ${RESULT}
+        DEPENDS
+            ${iHEX_FILE} ${BINARY_FILE}
+        COMMAND objcopy -Iihex -Obinary ${iHEX_FILE} ${iHEX_FILE2BIN}
+        COMMAND ${tools_DIR}/merge_binary.py --basefile=${iHEX_FILE2BIN}
+            --importfile=${BINARY_FILE} --offset=${OFFSET} > ${RESULT2BIN}
+        COMMAND objcopy -Ibinary -Oihex ${RESULT2BIN} ${RESULT}
+        COMMENT
+            "Appending file ${BINARY_FILE} to ${iHEX_FILE}"
+    )
+endfunction()

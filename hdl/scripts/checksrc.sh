@@ -12,7 +12,7 @@ fi
 PRJ_TMP_FILE_DATE=`date -d "$(stat -c %y $PRJ_TMP_FILE)" +%s`
 
 if [[ "$PRJ_TMP_FILE_DATE" > "$PRJ_FILE_DATE" ]]; then
-	echo "File $PRJ_TMP_FILE changed"
+        echo "PRJ template $PRJ_TMP_FILE changed"
 	cp $PRJ_TMP_FILE $PRJ_FILE
 	exit 0
 fi
@@ -20,8 +20,9 @@ fi
 while read line; do
 	FILE=`echo "$line" | awk '{print $3}'`
 	FILE_DATE=`date -d "$(stat -c %y $FILE)" +%s`
+        #echo "Checking $FILE ($FILE_DATE) ($PRJ_FILE_DATE)"
 	if [[ "$FILE_DATE" > "$PRJ_FILE_DATE" ]]; then 
-		echo "File $FILE changed"
+                echo "Source file $FILE changed"
 		cp $PRJ_TMP_FILE $PRJ_FILE
 		exit 0
 	fi
