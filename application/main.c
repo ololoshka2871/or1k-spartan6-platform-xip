@@ -35,22 +35,20 @@
 
 #include "GPIO.h"
 
-uint8_t v = 1;
-
 void DELAY() {
-    v <<= 1;
     for (int i = 0; i < 1000000; ++i)
         asm volatile("l.nop");
 }
 
-void __attribute__((used)) main(void)
+void main(void)
 {
-    asm volatile ("l.trap 0");
     GPIO portA = gpio_port_init(GPIO_PORTA, 0b1111);
+    uint8_t v = 1;
 
     while(1) {
         DELAY();
         if (v == 1 << 4) v = 1;
         gpio_port_set_all(portA, ~v);
+        v <<= 1;
     }
 }

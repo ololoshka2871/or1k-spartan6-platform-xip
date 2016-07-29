@@ -17,14 +17,14 @@ SECTIONS
       LONG(_data_end - hader_start)         /* size to load */
       LONG(ABSOLUTE(_bss_start))            /* start of bss_clear */
       LONG(_bss_end - _bss_start)           /* len to clear */
-      LONG(ABSOLUTE(main))                  /* address of entry point */
+      LONG(ABSOLUTE(entry))                 /* address of entry point */
   } > sram
 
   .text :
   {
       . = ALIGN(4);
       PROVIDE(_text_start = .);
-      KEEP(*(.text.startup*))
+      KEEP(*(.text.entry*))
       *(.text .text.*)                      /* remaining code */
       *(.rodata)                            /* read-only data (constants) */
       *(.rodata*)
@@ -58,7 +58,6 @@ SECTIONS
     *(COMMON)
     . = ALIGN(4);
     PROVIDE(_bss_end = .);
-    . += 8;
 
     __heap_start__ = .;
     end = __heap_start__;

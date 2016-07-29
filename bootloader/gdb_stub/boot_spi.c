@@ -83,7 +83,7 @@ boot_spi_transfer_byte(uint8_t byte_to_transmitt) {
 }
 
 void GDB_STUB_SECTION_TEXT
-boot_spi_transfer_buf(uint8_t* txp, uint8_t *rxp, uint8_t len) {
+boot_spi_transfer_buf(const uint8_t* txp, uint8_t *rxp, uint8_t len) {
     wait_transmitted();
 
     SPI_DR = *txp++;
@@ -103,9 +103,8 @@ boot_spi_transfer_buf(uint8_t* txp, uint8_t *rxp, uint8_t len) {
     *rxp++ = SPI_SR;
 }
 
-struct Flash_ID GDB_STUB_SECTION_TEXT
-        spi_probe_flash(uint8_t cs_from, uint8_t cs_to) {
-    uint8_t cmd[] = {JEDEC_ID_COMMAND, 1, 2, 3, 4};
+uint8_t GDB_STUB_SECTION_TEXT spi_probe_flash(uint8_t cs_from, uint8_t cs_to) {
+    static const uint8_t cmd[] = {JEDEC_ID_COMMAND, 1, 2, 3, 4};
     struct Flash_ID result;
 
     boot_spi_init(SPI_CLOCK_DEV_256, SPI_MODE3);
@@ -127,7 +126,7 @@ struct Flash_ID GDB_STUB_SECTION_TEXT
     }
     boot_spi_disable();
 
-    return result;
+    return result.cs_found;
 }
 
 void GDB_STUB_SECTION_TEXT

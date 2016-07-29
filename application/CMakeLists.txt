@@ -72,13 +72,15 @@ INCLUDE("or1k_toolchain")
 add_custom_target(mkldscript DEPENDS ${LD_SCRIPT_FILE})
 
 add_subdirectory(hw)
+add_subdirectory(lib)
 
 include_directories(hw)
 
 set(APPLICATION_ELF_NAME app.elf)
 
 add_executable(${APPLICATION_ELF_NAME}
-    app_main.c
+    ${APP_STARTUP_SRC}
+    main.c
     )
 target_link_libraries(${APPLICATION_ELF_NAME}
     hw

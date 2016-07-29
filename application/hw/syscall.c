@@ -35,13 +35,14 @@
 
 #include "syscall.h"
 
-uint32_t syscall(uint32_t arg) {
+uint32_t __attribute__((noinline)) syscall(uint32_t arg) {
     // arg == r3 -> first argument for syscall
     asm volatile("l.sys 6"); // 6 == exec user's syscall
     return arg;
 }
 
-syscall_handler install_syscall_handler(syscall_handler handler) {
+syscall_handler __attribute__((noinline))
+install_syscall_handler(syscall_handler handler) {
     // handler == r3
     asm volatile("l.sys 4"); // r3 now old syscall handler
     return handler;

@@ -90,8 +90,7 @@ struct Flash_ID {
     uint8_t cs_found;
 };
 
-struct Flash_ID GDB_STUB_SECTION_TEXT spi_probe_flash(uint8_t cs_from,
-                                                      uint8_t cs_to);
+uint8_t spi_probe_flash(uint8_t cs_from, uint8_t cs_to);
 void GDB_STUB_SECTION_TEXT spi_flash_read(uint8_t cs_num, uint32_t offset,
                     uint8_t* dest, uint32_t size);
 

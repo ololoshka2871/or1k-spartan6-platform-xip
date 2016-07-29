@@ -1,5 +1,5 @@
 /****************************************************************************
- * src/main.c
+ * startup.c
  *
  *   Copyright (C) 2016 Shilo_XyZ_. All rights reserved.
  *   Author:  Shilo_XyZ_ <Shilo_XyZ_<at>mail.ru>
@@ -33,19 +33,15 @@
  *
  ****************************************************************************/
 
-#ifndef SYSCALL_H
-#define SYSCALL_H
+extern void main(void);
 
-#include <stdint.h>
-
-typedef unsigned int*  (*syscall_handler)(unsigned int *registers);
-
-uint32_t __attribute__((noinline)) syscall(uint32_t arg);
-syscall_handler __attribute__((noinline))
-install_syscall_handler(syscall_handler handler);
-
-//
-unsigned long mfspr(unsigned long spr);
-void mtspr(unsigned long spr, unsigned long value);
-
-#endif // SYSCALL_H
+void __attribute__((used)) entry(void)
+{
+#ifndef NDEBUG
+    asm volatile ("l.trap 0");
+    asm volatile ("l.trap 0");
+#endif
+    while (1) {
+        main();
+    }
+}

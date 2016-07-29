@@ -51,7 +51,7 @@ INCLUDE("or1k_toolchain")
 
 add_subdirectory(gdb_stub)
 SET(BOOT_LIB_NOTRAP	    gdb_stub_notrap)
-if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+if(DEBUGER_AT_BOOTLOADER)
     SET(BOOT_LIB    gdb_stub)
 else()
     SET(BOOT_LIB    gdb_stub_notrap)

@@ -62,6 +62,9 @@ set(HEADER_W1               0x03030303
 set(HEADER_W2               0x1f1f1f1f
     CACHE STRING "Application syncronisation word 2")
 
+set(DEBUGER_AT_BOOTLOADER   OFF
+    CACHE BOOL   "Start debuger in bootloader")
+
 set(MAIN_MEMORY_BASE        0x10000000) # memory base address
 
 
