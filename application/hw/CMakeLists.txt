@@ -42,6 +42,7 @@ SET(LIBHW_SOURCES
     timer.c
     GPIO.c
     syscall.c
+    seg7_display.c
     )
 
 INCLUDE_DIRECTORIES(.)

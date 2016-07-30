@@ -45,7 +45,7 @@ module spi_boot
 #(
     parameter WB_DATA_WIDTH =	32
 ) (
-    // 8bit WISHBONE bus slave interface
+    // WISHBONE bus slave interface
     input  wire				clk_i,         // clock
     input  wire				rst_i,         // reset (asynchronous active low)
     input  wire				cyc_i,         // cycle

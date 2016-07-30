@@ -1,5 +1,5 @@
 /****************************************************************************
- * app_main.c
+ * seg7_disp.h
  *
  *   Copyright (C) 2016 Shilo_XyZ_. All rights reserved.
  *   Author:  Shilo_XyZ_ <Shilo_XyZ_<at>mail.ru>
@@ -33,28 +33,44 @@
  *
  ****************************************************************************/
 
-#include "GPIO.h"
-#include "seg7_display.h"
+#ifndef SEG7_DISP_H
+#define SEG7_DISP_H
 
-void DELAY() {
-    for (int i = 0; i < 1000000; ++i)
-        asm volatile("l.nop");
-}
+#include <stdint.h>
+#include <stdbool.h>
 
-void main(void)
-{
-    GPIO portA = gpio_port_init(GPIO_PORTA, 0b1111);
-    uint8_t v = 1;
-    uint16_t count = 0;
+#include "mem_map.h"
 
-    while(1) {
-        DELAY();
-        if (v == 1 << 4) v = 1;
-        gpio_port_set_all(portA, ~v);
-        seg7_printHex(count++);
-        for (uint8_t i = 0; i < 4; ++i) {
-            seg7_dpSet(seg7_num2Segment(i), v & (1 << i));
-        }
-        v <<= 1;
-    }
-}
+#define sA                  (1 << 0)
+#define sB                  (1 << 1)
+#define sC                  (1 << 2)
+#define sD                  (1 << 3)
+#define sE                  (1 << 4)
+#define sF                  (1 << 5)
+#define sG                  (1 << 6)
+#define sDP                 (1 << 7)
+
+enum Seg7Segment {
+    SEGMENT0 = SEG7_DISP_BASE,
+    SEGMENT1 = SEGMENT0 + 4,
+    SEGMENT2 = SEGMENT1 + 4,
+    SEGMENT3 = SEGMENT2 + 4,
+
+    SEGMENT_COUNT = 4
+};
+
+uint8_t seg7_getSegmentData(const enum Seg7Segment segment);
+void seg7_setSegmentData(const enum Seg7Segment segment, const uint8_t code);
+
+uint8_t seg7_char2seg7code(const uint8_t character);
+
+void seg7_PutStr(const char* str, uint8_t size, uint8_t space_char);
+
+bool seg7_dpGet(const enum Seg7Segment segment);
+void seg7_dpSet(const enum Seg7Segment segment, bool dpState);
+
+void seg7_printHex(uint16_t value);
+
+enum Seg7Segment seg7_num2Segment(const uint8_t num);
+
+#endif // SEG7_DISP_H

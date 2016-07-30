@@ -61,7 +61,10 @@ module top
     inout  wire     flash_CS,      // spi flash CS wire
     output wire     sck_o,         // serial clock output
     output wire     mosi_o,        // MasterOut SlaveIN
-    input  wire     miso_i         // MasterIn SlaveOut
+    input  wire     miso_i,        // MasterIn SlaveOut
+
+    output wire[7:0] segments,
+    output wire[3:0] seg_selectors
 );
 
 //-----------------------------------------------------------------
@@ -281,8 +284,10 @@ u_soc
     .sck_o(sck_o),
     .mosi_o(mosi_o),
     .miso_i(miso_i),
+    .spi_cs_o(spi_cs_o),
 
-    .spi_cs_o(spi_cs_o)
+    .segments(segments),
+    .seg_selectors(seg_selectors)
 );
 
 //-----------------------------------------------------------------

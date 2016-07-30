@@ -64,7 +64,11 @@ module soc
     sck_o,
     mosi_o,
     miso_i,
-    spi_cs_o
+    spi_cs_o,
+
+    //7sement indicator
+    segments,
+    seg_selectors
 );
 
 //-----------------------------------------------------------------
@@ -99,6 +103,9 @@ output                  sck_o /*verilator public*/;
 output                  mosi_o /*verilator public*/;
 input                   miso_i /*verilator public*/;
 output [6:0]            spi_cs_o /*verilator public*/;
+//7seg indicator
+output [7:0]            segments /*verilator public*/;
+output [3:0]            seg_selectors /*verilator public*/;
 
 //-----------------------------------------------------------------
 // Registers / Wires
@@ -130,6 +137,13 @@ wire [31:0]        spi_data_i;
 wire               spi_we;
 wire               spi_stb;
 wire               spi_intr;
+
+wire [7:0]         seg7_addr;
+wire [31:0]        seg7_data_o;
+wire [31:0]        seg7_data_i;
+wire               seg7_we;
+wire               seg7_stb;
+wire               seg7_switch_digit;
 
 //-----------------------------------------------------------------
 // Peripheral Interconnect
@@ -180,11 +194,11 @@ u2_soc
     .periph3_stb_o(spi_stb),
 
     // Unused = 0x12000400 - 0x120004FF
-    .periph4_addr_o(/*open*/),
-    .periph4_data_o(/*open*/),
-    .periph4_data_i(32'h00000000),
-    .periph4_we_o(/*open*/),
-    .periph4_stb_o(/*open*/),
+    .periph4_addr_o(seg7_addr),
+    .periph4_data_o(seg7_data_o),
+    .periph4_data_i(seg7_data_i),
+    .periph4_we_o(seg7_we),
+    .periph4_stb_o(seg7_stb),
 
     // Unused = 0x12000500 - 0x120005FF
     .periph5_addr_o(/*open*/),
@@ -307,6 +321,36 @@ spi_boot
 
     .cs_o(spi_cs_o)
 );
+
+seg7_disp_drv
+#(
+    .DIGITS_COUNT(4),
+    .IS_COM_CATODE(1),
+    .WB_DATA_WIDTH(32)
+) seg7 (
+    .clk_i(clk_i),
+    .rst_i(rst_i),
+    .cyc_i(io_cyc_i),
+    .stb_i(seg7_stb),
+    .adr_i(seg7_adr),
+    .we_i(seg7_we),
+    .dat_i(seg7_data_o),
+    .dat_o(seg7_data_i),
+    .ack_o(/*open*/),
+
+    .update_clock(seg7_switch_digit),
+    .segments(segments),
+    .selectors(seg_selectors)
+);
+
+//
+reg [12:0] devider = 0;
+assign seg7_switch_digit = devider[12];
+
+always @(posedge clk_i) begin
+    devider = devider + 1;
+end
+
 
 //-------------------------------------------------------------------
 // Hooks for debug

@@ -20,3 +20,17 @@ NET "sck_o" LOC = P70;
 NET "mosi_o" LOC = P64;
 NET "miso_i" LOC = P65;
 
+# 7Segments indicator
+NET "segments[0]" LOC = P80;
+NET "segments[1]" LOC = P79;
+NET "segments[2]" LOC = P83;
+NET "segments[3]" LOC = P82;
+NET "segments[4]" LOC = P81;
+NET "segments[5]" LOC = P78;
+NET "segments[6]" LOC = P84;
+NET "segments[7]" LOC = P85;
+
+NET "seg_selectors[0]" LOC = P66;
+NET "seg_selectors[1]" LOC = P74;
+NET "seg_selectors[2]" LOC = P67;
+NET "seg_selectors[3]" LOC = P75;
