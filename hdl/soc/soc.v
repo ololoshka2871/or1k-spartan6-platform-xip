@@ -332,7 +332,7 @@ seg7_disp_drv
     .rst_i(rst_i),
     .cyc_i(io_cyc_i),
     .stb_i(seg7_stb),
-    .adr_i(seg7_adr),
+    .adr_i(seg7_addr),
     .we_i(seg7_we),
     .dat_i(seg7_data_o),
     .dat_o(seg7_data_i),

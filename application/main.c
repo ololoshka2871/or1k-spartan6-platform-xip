@@ -47,6 +47,7 @@ void main(void)
     uint8_t v = 1;
     uint16_t count = 0;
 
+    seg7_PutStr("1234", 4, ' ');
     while(1) {
         DELAY();
         if (v == 1 << 4) v = 1;

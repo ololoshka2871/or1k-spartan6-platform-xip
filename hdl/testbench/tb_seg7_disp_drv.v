@@ -37,10 +37,11 @@
 module tb_seg7_disp_drv (
 
     output wire [7:0]                   segments,      // segments drivers
-    output wire [4:0]                   selectors      // digit selector
+    output wire [DIGITS_COUNT - 1:0]    selectors      // digit selector
 );
 
 parameter WB_DATA_WIDTH = 32;
+parameter DIGITS_COUNT = 4;
 
 // WISHBONE bus slave interface
 reg				clk;
@@ -63,7 +64,7 @@ wire [7:0] addr8 = {4'b0, adr, 2'b0};
 
 seg7_disp_drv
 #(
-    .DIGITS_COUNT(5),
+    .DIGITS_COUNT(DIGITS_COUNT),
     .IS_COM_CATODE(1),
     .WB_DATA_WIDTH(WB_DATA_WIDTH)
 ) disp_drv (
@@ -87,20 +88,20 @@ initial begin
         clk = 0;
 
         rst = 1;
-        #100;
+        #10;
         rst = 0;
 
         adr = 0;
         dat_i = 0;
-        we = 0;
+        we = 1;
         stb = 0;
         cyc = 0;
         update_clock = 0;
         counter = 0;
         trigger = 0;
 
-        // Wait 100 ns for global reset to finish
-        #100;
+        // Wait 10 ns for global reset to finish
+        #10;
 end
 
     always #10 begin
@@ -110,7 +111,6 @@ end
             cyc <= 1'b1;
             stb <= 1'b1;
             trigger <= 1'b0;
-            we <= update_clock;
         end
     end
 

@@ -39,23 +39,16 @@ static const uint8_t digit2seg7_code[] = {
     sA | sB | sC | sD | sE | sF     , // 0
          sB | sC                    , // 1
     sA | sB |      sD | sE |      sG, // 2
-    sA | sB | sC | sD | sE | sF | sG, // 3
-    sA | sB | sC | sD |           sG, // 4
-    sA | sB |      sD | sE |      sG, // 5
+    sA | sB | sC | sD |           sG, // 3
+         sB | sC |           sF | sG, // 4
+    sA |      sC | sD |      sF | sG, // 5
     sA |      sC | sD | sE | sF | sG, // 6
     sA | sB | sC                    , // 7
     sA | sB | sC | sD | sE | sF | sG, // 8
     sA | sB | sC | sD |      sF | sG, // 9
 };
 
-static const enum Seg7Segment segmentsArray[] = {
-    SEGMENT0,
-    SEGMENT1,
-    SEGMENT2,
-    SEGMENT3
-};
-
-static const uint8_t _hex_char[] = "0123456789abcdef" ;
+static const uint8_t _hex_char[] = "0123456789abcdef";
 
 uint8_t seg7_getSegmentData(const enum Seg7Segment segment) {
     return *(REG32 (segment));
@@ -108,6 +101,9 @@ uint8_t seg7_char2seg7code(const uint8_t character) {
         case 'L':
         case 'l':
             return                sD | sE | sF     ;
+        case 'N':
+        case 'n':
+            return           sC |      sE |      sG;
         case 'O':
             return digit2seg7_code[0];
         case 'o':
@@ -141,7 +137,7 @@ uint8_t seg7_char2seg7code(const uint8_t character) {
 
 void seg7_PutStr(const char *str, uint8_t size, uint8_t space_char) {
     for (uint8_t i = 0; i < SEGMENT_COUNT; ++i) {
-        seg7_setSegmentData(segmentsArray[i],
+        seg7_setSegmentData(seg7_num2Segment(i),
                        seg7_char2seg7code(i < size ? str[i] : space_char));
     }
 }
@@ -164,10 +160,10 @@ void seg7_dpSet(const enum Seg7Segment segment, bool dpState) {
 void seg7_printHex(uint16_t value) {
     uint8_t buf[SEGMENT_COUNT];
     for (int8_t i = SEGMENT_COUNT - 1; i >= 0; --i)
-        buf[i] = _hex_char[(value >> (4 * i)) & 0x0f];
+        buf[SEGMENT_COUNT - (i + 1)] = _hex_char[(value >> (4 * i)) & 0x0f];
     seg7_PutStr(buf, SEGMENT_COUNT, ' ');
 }
 
 enum Seg7Segment seg7_num2Segment(const uint8_t num) {
-    return segmentsArray[num];
+    return SEG7_DISP_BASE + num * 4;
 }

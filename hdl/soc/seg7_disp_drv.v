@@ -43,8 +43,7 @@ module seg7_disp_drv
 #(
     parameter DIGITS_COUNT              = 4,
     parameter IS_COM_CATODE             = 1,
-    parameter WB_DATA_WIDTH             = 32,
-    parameter ADDR_LEN                  = $clog2(DIGITS_COUNT * WB_DATA_WIDTH / 8)
+    parameter WB_DATA_WIDTH             = 32
 ) (
     // WISHBONE bus slave interface
     input  wire				clk_i,         // clock
@@ -69,12 +68,12 @@ reg [7:0] digits_storage[DIGITS_COUNT - 1:0]; // memory
 
 reg [7:0] dat_valid_o = {7{1'b0}};
 reg ack_o_reg = 1'b0;
-reg a_incorrect_addr = 1'b0;
 
 reg [DIGIT_SELECTOR_SIZE - 1:0] digit_selector = {DIGIT_SELECTOR_SIZE{1'b0}};
 
-wire [ADDR_LEN - 1:0] wb_addr_valid = adr_i[7:7 - ADDR_LEN];
+wire [DIGIT_SELECTOR_SIZE - 1:0] wb_addr_valid = adr_i[DIGIT_SELECTOR_SIZE - 1 + 2:2];
 wire [7:0] dat_valid_i = dat_i[7:0];
+wire a_incorrect_addr = (wb_addr_valid > (DIGITS_COUNT - 1));
 
 assign dat_o = dat_valid_o;
 assign ack_o = ack_o_reg;
@@ -96,14 +95,19 @@ end
 // wishbone read/write
 always @(posedge clk_i) begin
     ack_o_reg <= 1'b0;
-    a_incorrect_addr <= (wb_addr_valid > (DIGITS_COUNT - 1));
 
-    if (cyc_i & stb_i & ~ack_o & ~a_incorrect_addr) begin
-        if (we_i) begin
-            digits_storage[wb_addr_valid] <= dat_valid_i;
+    if (cyc_i & stb_i & ~ack_o) begin
+        if (~a_incorrect_addr) begin
+            if (we_i) begin
+                digits_storage[wb_addr_valid] <= dat_valid_i;
+            end
+            dat_valid_o <= digits_storage[wb_addr_valid];
+            ack_o_reg <= 1'b1;
         end
-        dat_valid_o <= digits_storage[wb_addr_valid];
-        ack_o_reg <= 1'b1;
+        else
+        begin
+            dat_valid_o <= 8'b0;
+        end
     end
 end
 
