@@ -1,5 +1,4 @@
 /****************************************************************************
- * app_main.c
  *
  *   Copyright (C) 2016 Shilo_XyZ_. All rights reserved.
  *   Author:  Shilo_XyZ_ <Shilo_XyZ_<at>mail.ru>
@@ -14,9 +13,6 @@
  *    notice, this list of conditions and the following disclaimer in
  *    the documentation and/or other materials provided with the
  *    distribution.
- * 3. Neither the name NuttX nor the names of its contributors may be
- *    used to endorse or promote products derived from this software
- *    without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
  * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
@@ -33,29 +29,52 @@
  *
  ****************************************************************************/
 
-#include "GPIO.h"
-#include "seg7_display.h"
+#include <string.h>
+#include <stdio.h>
+#include <assert.h>
 
-void DELAY() {
-    for (int i = 0; i < 1000000; ++i)
-        asm volatile("l.nop");
+#include "irq.h"
+#include "mdio.h"
+#include "prog_timer.h"
+#include "GPIO.h"
+
+#include "main.h"
+
+#define LED_MASK    (0b111)
+
+static void led_blinker(void* cookie) {
+    (void)cookie;
+    uint32_t v = gpio_port_get_val(GPIO_PORTA) & LED_MASK;
+    uint32_t new_v = (v & (LED_MASK >> 1)) ? (v << 1) : 1;
+
+    gpio_port_set_val(GPIO_PORTA, new_v, v);
 }
 
-void main(void)
-{
-    GPIO portA = gpio_port_init(GPIO_PORTA, 0b1111);
-    uint8_t v = 1;
-    uint16_t count = 0;
+static void Led_toggle() {
+#if GPIO_ENABLED
+    uint32_t v = gpio_port_get_val(GPIO_PORTA) & 1;
+    uint32_t set = (~v) & 1;
 
-    seg7_PutStr("1234", 4, ' ');
+    gpio_port_set_val(GPIO_PORTA, set, v);
+#endif
+}
+
+static void initAll() {
+    interrupts_init();
+    progtimer_init();
+
+#if GPIO_ENABLED
+    gpio_port_init(GPIO_PORTA, LED_MASK);
+    progtimer_new(1000, led_blinker, NULL);
+#endif
+}
+
+int main(void)
+{
+    initAll();
+    EXIT_CRITICAL();
+
     while(1) {
-        DELAY();
-        if (v == 1 << 4) v = 1;
-        gpio_port_set_all(portA, ~v);
-        seg7_printHex(count++);
-        for (uint8_t i = 0; i < 4; ++i) {
-            seg7_dpSet(seg7_num2Segment(i), v & (1 << i));
-        }
-        v <<= 1;
     }
+    return 0;
 }

@@ -13,9 +13,6 @@
 //*    notice, this list of conditions and the following disclaimer in
 //*    the documentation and/or other materials provided with the
 //*    distribution.
-//* 3. Neither the name NuttX nor the names of its contributors may be
-//*    used to endorse or promote products derived from this software
-//*    without specific prior written permission.
 //*
 //* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 //* "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
@@ -115,7 +112,7 @@ always @(posedge update_clock) begin
     if (digit_selector == DIGITS_COUNT - 1) begin
         digit_selector <= {DIGIT_SELECTOR_SIZE{1'b0}};
     end else begin
-        digit_selector <= digit_selector + 1;
+        digit_selector <= digit_selector + 1'b1;
     end
     segments <= IS_COM_CATODE ? digits_storage[digit_selector] :
         ~digits_storage[digit_selector];
