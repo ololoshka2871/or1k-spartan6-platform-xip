@@ -33,11 +33,7 @@
 `include "config.v"
 
 module soc_fast
-#(
-    parameter   INPUTS_COUNT            = 24, // количество входов (1 - 32)
-    parameter   MASER_FREQ_COUNTER_LEN  = 30, // длина регистра, считающего опорную частоту
-    parameter   INPUT_FREQ_COUNTER_LEN  = 24  // длина региста, считающего входную частоту
-) (
+(
     // WISHBONE bus slave interface
     input  wire				clk_i,         // clock
     input  wire				rst_i,         // reset (asynchronous active low)
@@ -51,11 +47,6 @@ module soc_fast
     output wire                         stall_o,       // stall
     input  wire [3:0]                   sel_i,         // byte sellect
     input  wire [2:0]                   cti_i,
-
-    // Freqmeters
-    input  wire                         F_master,      // частота образцовая
-    input  wire [INPUTS_COUNT - 1:0]    F_in,          // входы для частоты
-    output wire [MASER_FREQ_COUNTER_LEN-1:0] devided_clocks, // clk_i деленная на 2, 4, ... 2^MASER_FREQ_COUNTER_LEN
 
 `ifdef ETHERNET_ENABLED
     // RMII interface
@@ -80,15 +71,6 @@ parameter MEMORY_SIZE_BYTES = MEMORY_SIZE_BLOCKS * MEMORY_BLOCK_SIZE;
 parameter MEMORY_ADDR_WIDTH = $clog2(MEMORY_SIZE_BYTES);
 
 //------------------------------------------------------------------------------
-
-// Data Memory 0 (0x11000000 - 0x110FFFFF)
-wire [31:0]         freqmeter_addr;
-wire [31:0]         freqmeter_data_r;
-wire [31:0]         freqmeter_data_w;
-wire                freqmeter_we;
-wire                freqmeter_stb;
-wire                freqmeter_cyc;
-wire                freqmeter_ack;
 
 // Data Memory 1 (0x11100000 - 0x111FFFFF)
 wire [31:0]         ethernet_ctl_addr;
@@ -129,7 +111,7 @@ wire                ethernat_tx_int;
 
 //------------------------------------------------------------------------------
 
-assign interrupts_o = {ethernat_rx_int, ethernat_tx_int, freqmeter_inta};
+assign interrupts_o = {ethernat_rx_int, ethernat_tx_int, 1'b0};
 
 // muxer
 dmem_mux4
@@ -138,15 +120,15 @@ dmem_mux4
 ) u_dmux (
     // Outputs
     // 0x11000000 - 0x110FFFFF
-    .out0_addr_o(freqmeter_addr),
-    .out0_data_o(freqmeter_data_w),
-    .out0_data_i(freqmeter_data_r),
+    .out0_addr_o(/* open */),
+    .out0_data_o(/* open */),
+    .out0_data_i(32'b0),
     .out0_sel_o(/* open */),
-    .out0_we_o(freqmeter_we),
-    .out0_stb_o(freqmeter_stb),
-    .out0_cyc_o(freqmeter_cyc),
+    .out0_we_o(/* open */),
+    .out0_stb_o(/* open */),
+    .out0_cyc_o(/* open */),
     .out0_cti_o(/* open */),
-    .out0_ack_i(freqmeter_ack),
+    .out0_ack_i(1'b0),
     .out0_stall_i(1'b0),
 
     // 0x11100000 - 0x111FFFFF
@@ -198,30 +180,6 @@ dmem_mux4
     .mem_stall_o(stall_o)
 );
 
-// Freq meter
-freqmeters3
-#(
-    .INPUTS_COUNT(INPUTS_COUNT),
-    .MASER_FREQ_COUNTER_LEN(MASER_FREQ_COUNTER_LEN),
-    .INPUT_FREQ_COUNTER_LEN(INPUT_FREQ_COUNTER_LEN)
-) fm (
-    .clk_i(clk_i),
-    .rst_i(rst_i),
-    .cyc_i(freqmeter_cyc),
-    .stb_i(freqmeter_stb),
-    .adr_i(freqmeter_addr[9:0]),
-    .we_i(freqmeter_we),
-    .dat_i(freqmeter_data_w),
-    .dat_o(freqmeter_data_r),
-    .ack_o(freqmeter_ack),
-    .inta_o(freqmeter_inta),
-
-    .F_master(F_master),
-    .F_in(F_in),
-
-    .devided_clocks(devided_clocks)
-);
-
 `ifdef ETHERNET_ENABLED
 // ethernet
 myminimac
@@ -271,8 +229,8 @@ myminimac
 );
 `else
 assign ethernat_rx_int = 1'b0;
-
 assign ethernat_tx_int = 1'b0;
+
 assign ethernet_ctl_data_r = 32'b0;
 
 assign ethernet_rxbuf_data_r = 32'b0;

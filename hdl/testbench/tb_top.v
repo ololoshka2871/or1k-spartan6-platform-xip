@@ -30,32 +30,10 @@ module tb_top;
         wire     mii_mdio;
         wire  [1:0]   rmii_tx_data;
 
-        wire [23:0] Fin;
-
-        reg [32:0] devided_clocks;
-
-        wire [11:0] test_sig;
-
         wire [`GPIO_COUNT-1:0]     gpio;
 
         wire sda;
         wire scl;
-
-        assign test_sig[0] = devided_clocks[3] & devided_clocks[8];
-        assign test_sig[1] = devided_clocks[2] & devided_clocks[9];
-        assign test_sig[2] = devided_clocks[1] & devided_clocks[0];
-        assign test_sig[3] = devided_clocks[8] & devided_clocks[1];
-        assign test_sig[4] = devided_clocks[7] & devided_clocks[2];
-        assign test_sig[5] = devided_clocks[6] & devided_clocks[3];
-        assign test_sig[6] = devided_clocks[5] & devided_clocks[4];
-        assign test_sig[7] = devided_clocks[4] & devided_clocks[5];
-        assign test_sig[8] = devided_clocks[3] & devided_clocks[6];
-        assign test_sig[9] = devided_clocks[2] & devided_clocks[7];
-        assign test_sig[10] = devided_clocks[1] & devided_clocks[8];
-        assign test_sig[11] = devided_clocks[0] & devided_clocks[9];
-
-        assign Fin[11:0] = test_sig;
-        assign Fin[23:12] = ~test_sig;
 
 	// Bidirs
 
@@ -78,8 +56,6 @@ module tb_top;
             .phy_rmii_clk(rmii_clk),
             .phy_mdclk(mii_mdclk),
             .phy_mdio(mii_mdio),
-
-            .Fin(Fin[`F_INPUTS_COUNT-1:0]),
 
             .i2c_sda(sda),
             .i2c_scl(scl),
@@ -106,7 +82,6 @@ module tb_top;
             // Initialize Inputs
             clk = 0;
             rx = 0;
-            devided_clocks = 0;
             rmii_clk = 1;
             // Wait 100 ns for global reset to finish
             #100;
@@ -118,10 +93,6 @@ module tb_top;
 	always #10 clk <= !clk;
 
         always #11 rmii_clk <= !rmii_clk;
-
-        always @(posedge clk) begin
-            devided_clocks = devided_clocks + 1;
-        end
       
 endmodule
 

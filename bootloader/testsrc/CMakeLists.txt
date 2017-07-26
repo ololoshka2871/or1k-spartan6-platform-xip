@@ -73,10 +73,6 @@ if (PERIPHERIAL_ENABLE_HW_MUL)
     add_definitions(-DHW_MUL_MODULE)
 endif()
 
-if (SIM_TEST_FREQMETER)
-    add_definitions(-DSIM_TEST_FREQMETER)
-endif()
-
 if (SIM_TEST_MULTIPLICATION)
     add_definitions(-DSIM_TEST_MULTIPLICATION)
 endif()

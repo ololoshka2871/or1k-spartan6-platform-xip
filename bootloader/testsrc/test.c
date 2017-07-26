@@ -34,7 +34,6 @@
 
 #include "gdb-stub-sections.h"
 
-#include "freqmeters.h"
 #include "minimac2.h"
 #include "mdio.h"
 #include "GPIO.h"

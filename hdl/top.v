@@ -149,9 +149,6 @@ wire[6:0]           spi_cs_o;
 
 wire[2:0]           ext_intr;
 
-wire[`SYSTEM_FREF_COUNTER_LEN-1:0] devided_clocks;
-wire[15:0]          clock_devider16 = devided_clocks[15:0];
-
 `ifdef USE_PHISICAL_INPUTS
 `else
 wire[`F_INPUTS_COUNT-1:0] Fin;
@@ -275,16 +272,13 @@ clock_provider clk_prov
     .rmii_clk_to_PHY_i(phy_rmii_clk),
 
     .sys_clk_o(clk),
-    .rmii_logick_clk_o(rmii_clk),
-    .clk_ref_o(clk_ref)
+    .rmii_logick_clk_o(rmii_clk)
 );
 
 // Fast perepherial
 soc_fast
 #(
-    .INPUTS_COUNT(`F_INPUTS_COUNT),
-    .MASER_FREQ_COUNTER_LEN(`SYSTEM_FREF_COUNTER_LEN),
-    .INPUT_FREQ_COUNTER_LEN(`SYSTEM_INPUTS_COUNTER_LEN)
+    .INPUTS_COUNT(`F_INPUTS_COUNT)
 ) sf (   
     .clk_i(clk),
     .rst_i(reset),

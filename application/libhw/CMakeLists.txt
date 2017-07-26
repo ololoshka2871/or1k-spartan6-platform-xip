@@ -55,7 +55,6 @@ SET(LIBHW_SOURCES
     GPIO.c
     syscall.c
     seg7_display.c
-    freqmeters.c
     minimac2.c
     mdio.c
     prog_timer.c
@@ -63,9 +62,6 @@ SET(LIBHW_SOURCES
     iicmb.c
     bb_i2c.c
     i2c.c
-    ds1338z.c
-    rtc.c
-    ${SETTINGS_SRC}
     crc32.c
     )
 
