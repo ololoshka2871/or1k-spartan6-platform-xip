@@ -277,9 +277,7 @@ clock_provider clk_prov
 
 // Fast perepherial
 soc_fast
-#(
-    .INPUTS_COUNT(`F_INPUTS_COUNT)
-) sf (   
+sf (
     .clk_i(clk),
     .rst_i(reset),
 
@@ -336,7 +334,7 @@ u_soc
     .io_ack_o(soc_ack),
     .io_cyc_i(soc_cyc),
 
-    .devided_clocks(clock_devider16),
+    .devided_clocks(/* open */),
 
     .sck_o(sck_o),
     .mosi_o(mosi_o),

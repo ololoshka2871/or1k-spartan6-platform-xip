@@ -83,6 +83,8 @@ set(SYSTEM_TRAP_EARLY           OFF
     CACHE BOOL   "Start debuger in bootloader")
 set(SYSTEM_HEAP_SIZE            512
     CACHE STRING "System memory heap size")
+set(SYSTEM_FRINTF_FLOAT_SUPPORT OFF
+    CACHE BOOL  "Support for frinting float by ee_printf()")
 
 #---------------------------/SYSTEM---------------------------------------------
 

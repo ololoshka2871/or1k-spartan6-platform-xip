@@ -31,34 +31,32 @@
 
 cmake_minimum_required(VERSION 2.8.5)
 
-SET(LIBBASE_SOURCES
-    mem_managment.c
-    assert_trap.c
-    printf-warper.c
-    graycode.c
-    bcd.c
-    sha1.c
-    base64.c
+SET(COREMARK_SOURCES
+	core_list_join.c
+	core_main.c
+	core_matrix.c
+	core_portme.c
+	core_state.c
+	core_util.c
+	cvt.c
+	fmod.c
     )
 
-include_directories(.)
-
 set(difenitions
-    SYSTEM_HEAP_SIZE=${SYSTEM_HEAP_SIZE}
-    MACTX_HEAP_BASE=${MAC_TX_MEM_BASE}
-    MACTX_HEAP_SIZE=${MAC_TX_MEM_SIZE}
-    BYTE_ORDER=__BYTE_ORDER__
-    LITTLE_ENDIAN=__ORDER_LITTLE_ENDIAN__
-    BIG_ENDIAN=__ORDER_BIG_ENDIAN__
+    CPU_CLOCK_HZ=${CPU_CLOCK_HZ}
+    COMPILER_FLAGS="${CMAKE_C_FLAGS_COMMON}"
     )
 
 if (SYSTEM_FRINTF_FLOAT_SUPPORT)
     list(APPEND difenitions HAS_FLOAT)
 endif()
 
-add_library(base STATIC ${LIBBASE_SOURCES})
+INCLUDE_DIRECTORIES(
+    .
+    ${LIBHW_INCLUDE_DIR}
+    )
 
-set_target_properties(base PROPERTIES COMPILE_DEFINITIONS "${difenitions}")
+add_library(coremark STATIC ${COREMARK_SOURCES})
 
-set(APP_STARTUP_SRC      ${CMAKE_CURRENT_SOURCE_DIR}/startup.c   PARENT_SCOPE)
-set(LIBBASE_INCLUDE_DIR  ${CMAKE_CURRENT_SOURCE_DIR}             PARENT_SCOPE)
+set_target_properties(coremark PROPERTIES COMPILE_DEFINITIONS "${difenitions}")
+

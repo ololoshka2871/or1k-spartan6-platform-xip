@@ -53,33 +53,6 @@ NET "phy_rmii_clk"              LOC = P23 | IOSTANDARD = "LVCMOS33" | IOB = True
 NET "phy_mdclk"                 LOC = P58 | IOSTANDARD = "LVCMOS33";
 NET "phy_mdio"                  LOC = P57 | IOSTANDARD = "LVCMOS33" | PULLUP;
 
-# Freqmeter inputs
-NET "Fin[0]"                    LOC = P30 | IOSTANDARD = LVCMOS33 | PULLDOWN;
-NET "Fin[1]"                    LOC = P33 | IOSTANDARD = LVCMOS33 | PULLDOWN;
-NET "Fin[2]"                    LOC = P34 | IOSTANDARD = LVCMOS33 | PULLDOWN;
-NET "Fin[3]"                    LOC = P35 | IOSTANDARD = LVCMOS33 | PULLDOWN;
-NET "Fin[4]"                    LOC = P40 | IOSTANDARD = LVCMOS33 | PULLDOWN;
-NET "Fin[5]"                    LOC = P41 | IOSTANDARD = LVCMOS33 | PULLDOWN;
-NET "Fin[6]"                    LOC = P43 | IOSTANDARD = LVCMOS33 | PULLDOWN;
-NET "Fin[7]"                    LOC = P44 | IOSTANDARD = LVCMOS33 | PULLDOWN;
-NET "Fin[8]"                    LOC = P45 | IOSTANDARD = LVCMOS33 | PULLDOWN;
-NET "Fin[9]"                    LOC = P46 | IOSTANDARD = LVCMOS33 | PULLDOWN;
-NET "Fin[10]"                   LOC = P47 | IOSTANDARD = LVCMOS33 | PULLDOWN;
-NET "Fin[11]"                   LOC = P48 | IOSTANDARD = LVCMOS33 | PULLDOWN;
-
-NET "Fin[12]"                   LOC = P85 | IOSTANDARD = LVCMOS33 | PULLDOWN;
-NET "Fin[13]"                   LOC = P84 | IOSTANDARD = LVCMOS33 | PULLDOWN;
-NET "Fin[14]"                   LOC = P83 | IOSTANDARD = LVCMOS33 | PULLDOWN;
-NET "Fin[15]"                   LOC = P82 | IOSTANDARD = LVCMOS33 | PULLDOWN;
-NET "Fin[16]"                   LOC = P81 | IOSTANDARD = LVCMOS33 | PULLDOWN;
-NET "Fin[17]"                   LOC = P80 | IOSTANDARD = LVCMOS33 | PULLDOWN;
-NET "Fin[18]"                   LOC = P79 | IOSTANDARD = LVCMOS33 | PULLDOWN;
-NET "Fin[19]"                   LOC = P78 | IOSTANDARD = LVCMOS33 | PULLDOWN;
-NET "Fin[20]"                   LOC = P75 | IOSTANDARD = LVCMOS33 | PULLDOWN;
-NET "Fin[21]"                   LOC = P74 | IOSTANDARD = LVCMOS33 | PULLDOWN;
-NET "Fin[22]"                   LOC = P67 | IOSTANDARD = LVCMOS33 | PULLDOWN;
-NET "Fin[23]"                   LOC = P66 | IOSTANDARD = LVCMOS33 | PULLDOWN;
-
 ## RMII
 ### Clock source 50 MHz/20 ns ###
 TIMESPEC TS_RMII_CLK = PERIOD TS_RMII_CLK 20 ns HIGH;

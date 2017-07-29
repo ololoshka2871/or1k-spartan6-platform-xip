@@ -14,7 +14,7 @@ void serial0_init (void)
 int serial0_putchar(char ch)
 {   
     if (ch == '\n')
-        serial1_putchar('\r');
+        serial0_putchar('\r');
     
     // Print in simulator via l.nop instruction
     {
@@ -53,5 +53,5 @@ int serial0_haschar()
 void serial0_putstr(char *str)
 {
     while (*str)
-        serial1_putchar(*str++);
+        serial0_putchar(*str++);
 }

@@ -142,7 +142,7 @@ mkdir build-gdb && cd build-gdb
 	--disable-tcl --disable-winsup --disable-libgui \
 	--disable-rda --disable-sid --disable-sim \
 	--with-sysroot --disable-newlib --disable-libgloss \
-	--with-python=yes
+	--with-python=yes --with-guile=no
 make
 sudo make install
 ```
@@ -213,6 +213,7 @@ cmake-gui .
 	* SIM_TEST_MINMAC_SLOT_LOGICK - Добавить в сборку тест логики приёмных слотов модуля Ethernet
 	* SIM_TEST_MULTIPLICATION - Добавить в сборку тест умножения
 	* SYSTEM_FPGA_BMEMORY_USE - число блоков блочной памяти FPGA, используемых как системная память
+        * SYSTEM_PRINTF_FLOAT_SUPPORT - поддержка форматирования чисел с плавающей точкой
 	* SYSTEM_HEAP_SIZE - размер системной кучи в байтах
 	* SYSTEM_TRAP_EARLY - Ранний старт отладчика (до загрузки приложения)
 	* XILINX_DIR - Каталог в котором находятся исполняемые файлы Xilinx ISE

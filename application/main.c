@@ -60,19 +60,24 @@ static void Led_toggle() {
 }
 
 static void initAll() {
-    interrupts_init();
-    progtimer_init();
+    //interrupts_init();
+    //progtimer_init();
 
-#if GPIO_ENABLED
+#if GPIO_ENABLED && 0
     gpio_port_init(GPIO_PORTA, LED_MASK);
     progtimer_new(1000, led_blinker, NULL);
 #endif
 }
 
+
+extern int coremark_main(int argc, char *argv[]);
+
 int main(void)
 {
     initAll();
     EXIT_CRITICAL();
+
+    coremark_main(0, NULL);
 
     while(1) {
     }
