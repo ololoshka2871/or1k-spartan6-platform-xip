@@ -310,7 +310,7 @@ hw_math hw_math_periph
 (
     .clk_i(clk_i),
     .rst_i(rst_i),
-    .addr_i(hw_math_addr),
+    .addr_i(hw_math_addr[3:0]),
     .dat_o(hw_math_data_r),
     .dat_i(hw_math_data_w),
     .we_i(hw_math_we),

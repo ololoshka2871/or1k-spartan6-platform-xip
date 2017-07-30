@@ -51,7 +51,7 @@ module wb_dp_ram_primitive
     input  wire                    a_stb_i,   // STB_I strobe input
     output wire                    a_ack_o,   // ACK_O acknowledge output
     input  wire                    a_cyc_i,   // CYC_I cycle input
-    output reg 			   a_stall_o, // incorrect address
+    output wire			   a_stall_o, // incorrect address
 
     // port B
     input  wire                    b_clk,
@@ -63,10 +63,13 @@ module wb_dp_ram_primitive
     input  wire                    b_stb_i,   // STB_I strobe input
     output wire                    b_ack_o,   // ACK_O acknowledge output
     input  wire                    b_cyc_i,   // CYC_I cycle input
-    output reg 			   b_stall_o  // incorrect address
+    output wire			   b_stall_o  // incorrect address
 );
 
 //------------------------------------------------------------------------------
+
+assign a_stall_o = 1'b0;
+assign b_stall_o = 1'b0;
 
 reg a_ack_o_reg = 1'b0;
 reg b_ack_o_reg = 1'b0;
@@ -101,11 +104,8 @@ wire b_access = b_cyc_i & b_stb_i & ~b_ack_o;
 
 //------------------------------------------------------------------------------
 
-assign wb_stall_o = 1'b0;
-assign rawp_stall_o = 1'b0;
-
 assign a_ack_o = a_ack_o_reg & a_cyc_i;
-assign b_ack_o = b_ack_o_reg /*& b_cyc_i*/;
+assign b_ack_o = b_ack_o_reg & b_cyc_i;
 
 //------------------------------------------------------------------------------
 
@@ -147,7 +147,7 @@ always @(negedge a_clk) begin
     a_ack_o_reg <= rst_i ? 1'b0 : a_access;
 end
 
-always @(posedge b_clk) begin
+always @(posedge b_clk) begin // no acceleartion possible, cpu logick need ack AFTER STROBE whan write
     b_ack_o_reg <= rst_i ? 1'b0 : b_access;
 end
 

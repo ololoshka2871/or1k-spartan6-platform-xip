@@ -107,13 +107,6 @@ extern void register_command_func (const char *name, const char *params, const c
 /* Redirects console */
 extern void change_console_type (enum bi_console_type_t con_type);
 
-/* OR1k specific */
-/* For writing into SPR. */
-extern void mtspr(unsigned long spr, unsigned long value);
-
-/* For reading SPR. */
-extern unsigned long mfspr(unsigned long spr);
-
 
 #endif	/* _COMMON_H_ */
 

@@ -60,10 +60,10 @@ static void Led_toggle() {
 }
 
 static void initAll() {
-    //interrupts_init();
-    //progtimer_init();
+    interrupts_init();
+    progtimer_init();
 
-#if GPIO_ENABLED && 0
+#if GPIO_ENABLED
     gpio_port_init(GPIO_PORTA, LED_MASK);
     progtimer_new(1000, led_blinker, NULL);
 #endif
