@@ -41,6 +41,13 @@ set(LD_SCRIPT_FILE     "${CMAKE_CURRENT_BINARY_DIR}/link.ld")
 math(EXPR MAIN_MEMORY_SIZE_B "${SYSTEM_FPGA_BMEMORY_USE} * (16*1024) / 8")
 configure_file(${LD_SCRIPT_FILE_IN} ${LD_SCRIPT_FILE} @ONLY)
 
+set(CURRENT_MEMORY_SIZE_FILE    MEMSIZE)
+# Эта штука для ситуации когда изменено ${SYSTEM_FPGA_BMEMORY_USE}, нужно пересобрать бинарники
+add_custom_target(ldsctipt
+    DEPENDS ${LD_SCRIPT_FILE}
+    COMMAND if [ `cat ${CURRENT_MEMORY_SIZE_FILE}` != ${SYSTEM_FPGA_BMEMORY_USE} ]\; then rm ${PROJECT_NAME}_sim.elf ${PROJECT_NAME}.elf\; fi\; echo ${SYSTEM_FPGA_BMEMORY_USE} > ${CURRENT_MEMORY_SIZE_FILE}
+    )
+
 message(STATUS "System memory size: ${MAIN_MEMORY_SIZE_B} B")
 
 INCLUDE("or1k_toolchain")
@@ -63,6 +70,7 @@ add_executable(${PROJECT_NAME}.elf
 target_link_libraries(${PROJECT_NAME}.elf
     ${BOOT_LIB}
     )
+add_dependencies(${PROJECT_NAME}.elf ldsctipt)
 
 add_executable(${PROJECT_NAME}_sim.elf
     ${BOOT_S}
@@ -71,6 +79,7 @@ add_executable(${PROJECT_NAME}_sim.elf
 target_link_libraries(${PROJECT_NAME}_sim.elf
     -Wl,--start-group testsrc ${BOOT_LIB_SIM_NOTRAP} -Wl,--end-group
     )
+add_dependencies(${PROJECT_NAME}_sim.elf ldsctipt)
 
 function(elf2hex ELF_FILE BIN_FILE HEX_FILE)
     # make listing

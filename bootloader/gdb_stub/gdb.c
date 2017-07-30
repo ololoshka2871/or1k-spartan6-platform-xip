@@ -649,10 +649,10 @@ gdb_exception(unsigned int *registers, unsigned int reason)
 // FATAL_no_bootable_code_found
 //-----------------------------------------------------------------
 static void GDB_STUB_SECTION_TEXT FATAL_no_bootable_code_found(int code) {
-    gdb_putstr("Boot error: ");
-    gdb_putchar('0' + code);
     gdb_putchar('\n');
     gdb_putchar('\r');
+    gdb_putstr("Boot error: ");
+    gdb_putchar('0' + code);
     while(1);
 }
 
@@ -661,8 +661,6 @@ static void GDB_STUB_SECTION_TEXT FATAL_no_bootable_code_found(int code) {
 //-----------------------------------------------------------------
 static void GDB_STUB_SECTION_TEXT Boot_status(int code) {
     gdb_putchar('A' + code);
-    gdb_putchar('\n');
-    gdb_putchar('\r');
 }
 
 //-----------------------------------------------------------------
@@ -672,6 +670,8 @@ void GDB_STUB_SECTION_TEXT try_load(void) {
     pfEntry user_code_entry = 0;
     {
         uint32_t buf;
+
+        gdb_putstr("Boot: ");
 
         //Probing flash
         cs_found = spi_probe_flash(1, 2);
@@ -722,6 +722,8 @@ void GDB_STUB_SECTION_TEXT try_load(void) {
     if (user_code_entry) {
         // Entering user application..
         Boot_status(3);
+        gdb_putchar('\n');
+        gdb_putchar('\r');
         user_code_entry();
     } else
         FATAL_no_bootable_code_found(1);

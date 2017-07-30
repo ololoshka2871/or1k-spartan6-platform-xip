@@ -44,6 +44,8 @@ install_syscall_handler(syscall_handler handler);
 void read_boot_flash(uint32_t addr, uint8_t *dest, uint32_t size);
 void reboot();
 
+void flush_dcache(void);
+
 //
 unsigned long mfspr(unsigned long spr);
 void mtspr(unsigned long spr, unsigned long value);

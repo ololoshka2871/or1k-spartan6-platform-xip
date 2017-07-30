@@ -1,4 +1,5 @@
 #include "mem_map.h"
+#include "syscall.h"
 #include "serial.h"
 
 //-------------------------------------------------------------
@@ -12,7 +13,7 @@ void serial0_init (void)
 // serial_putchar: Write character to UART Tx buffer
 //-------------------------------------------------------------
 int serial0_putchar(char ch)
-{   
+{
     if (ch == '\n')
         serial0_putchar('\r');
     

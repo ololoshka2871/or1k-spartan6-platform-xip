@@ -136,3 +136,8 @@ void GDB_STUB_SECTION_TEXT gdb_flush_cache(void)
 {
     mtspr(SPR_SR, mfspr(SPR_SR) | SPR_SR_ICACHE_FLUSH | SPR_SR_DCACHE_FLUSH);
 }
+
+void flush_dcache(void)
+{
+    mtspr(SPR_SR, mfspr(SPR_SR) | SPR_SR_DCACHE_FLUSH);
+}

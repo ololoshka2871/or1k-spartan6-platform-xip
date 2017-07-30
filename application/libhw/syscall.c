@@ -32,6 +32,10 @@
 
 #include "syscall.h"
 
+#define SPR_SR                  (17)
+#define SPR_SR_ICACHE_FLUSH     (1 << 17)
+#define SPR_SR_DCACHE_FLUSH     (1 << 18)
+
 uint32_t __attribute__((noinline)) syscall(uint32_t arg) {
     // arg == r3 -> first argument for syscall
     asm volatile("l.sys 8"); // 8 == exec user's syscall
@@ -75,4 +79,9 @@ unsigned long mfspr(unsigned long spr)
 void mtspr(unsigned long spr, unsigned long value)
 {
     asm volatile ("l.mtspr\t\t%0,%1,0": : "r" (spr), "r" (value));
+}
+
+void flush_dcache(void)
+{
+    mtspr(SPR_SR, mfspr(SPR_SR) | SPR_SR_DCACHE_FLUSH);
 }
