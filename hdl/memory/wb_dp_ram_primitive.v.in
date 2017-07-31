@@ -99,7 +99,7 @@ wire [NUM_OF_MEM_UNITS_TO_USE-1:0] _b_block_sel;
 wire [3:0] a_block_we [NUM_OF_MEM_UNITS_TO_USE-1:0];
 wire [3:0] b_block_we [NUM_OF_MEM_UNITS_TO_USE-1:0];
 
-wire a_access = a_cyc_i & a_stb_i & ~a_ack_o;
+wire a_access = a_cyc_i & a_stb_i /*& ~a_ack_o*/;
 wire b_access = b_cyc_i & b_stb_i /*& ~b_ack_o*/;
 
 //------------------------------------------------------------------------------

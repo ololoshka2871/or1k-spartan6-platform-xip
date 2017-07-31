@@ -251,8 +251,10 @@ make_bitgen(${BIT_FILE} ${UT_FILE_NAME} ${NCD_FILE})
 #------------------------------------/HDL---------------------------------------
 
 #---------------------------------application-----------------------------------
-add_subdirectory(application)
-add_custom_command(OUTPUT ${APPLICATION_BINARY} DEPENDS application)
+if (NOT ${SYSTEM_PERFORM_COREMARK_AT_BOOT})
+    add_subdirectory(application)
+    add_custom_command(OUTPUT ${APPLICATION_BINARY} DEPENDS application)
+endif()
 #--------------------------------/application-----------------------------------
 
 #-----------------------------post-syntesis sim---------------------------------
@@ -303,10 +305,16 @@ set(CDF_FILE			${CMAKE_CURRENT_BINARY_DIR}/cdffile.cdf)
 configure_file(${IMPACT_BATCH_FILE_CHIP_IN} ${IMPACT_BATCH_FILE_CHIP} @ONLY)
 configure_file(${IMPACT_BATCH_FILE_FLASH_IN} ${IMPACT_BATCH_FILE_FLASH} @ONLY)
 
-build_mcs(${MCS_FIRMWARE_IMAGE}
-0x0 ${BIT_FILE}
-${USER_CODE_FLASH_OFFSET} ${APPLICATION_BINARY}
-)
+if (${SYSTEM_PERFORM_COREMARK_AT_BOOT})
+    build_mcs(${MCS_FIRMWARE_IMAGE}
+        0x0 ${BIT_FILE}
+    )
+else()
+    build_mcs(${MCS_FIRMWARE_IMAGE}
+        0x0 ${BIT_FILE}
+        ${USER_CODE_FLASH_OFFSET} ${APPLICATION_BINARY}
+    )
+endif()
 
 add_custom_target(flash_image DEPENDS ${MCS_FIRMWARE_IMAGE})
 
