@@ -7,12 +7,9 @@
 */
 #include "coremark.h"
 #include "core_portme.h"
-#include "spr-defs.h"
 #include "board.h"
 #include "support.h"
 #include "common.h"
-
-#include "timer.h"
 
 /*
 #if VALIDATION_RUN
@@ -51,7 +48,7 @@ CORETIMETYPE barebones_clock()
     //#error "You must implement a method to measure time in
 	//barebones_clock()! This function should return current time.\n"
     //return timestamp;
-    return hires_timer_now();
+    return SYS_CLK_COUNT;
 }
 
 /* Define : TIMER_RES_DIVIDER

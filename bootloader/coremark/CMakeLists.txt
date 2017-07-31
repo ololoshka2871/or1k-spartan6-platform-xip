@@ -32,14 +32,16 @@
 cmake_minimum_required(VERSION 2.8.5)
 
 SET(COREMARK_SOURCES
-	core_list_join.c
-	core_main.c
-	core_matrix.c
-	core_portme.c
-	core_state.c
-	core_util.c
-	cvt.c
-	fmod.c
+    core_list_join.c
+    core_main.c
+    core_matrix.c
+    core_portme.c
+    core_state.c
+    core_util.c
+    cvt.c
+    fmod.c
+    ee_printf.c
+    printf.c
     )
 
 set(difenitions
@@ -53,7 +55,7 @@ endif()
 
 INCLUDE_DIRECTORIES(
     .
-    ${LIBHW_INCLUDE_DIR}
+    ${GDB_STUB_DIR}
     )
 
 add_library(coremark STATIC ${COREMARK_SOURCES})

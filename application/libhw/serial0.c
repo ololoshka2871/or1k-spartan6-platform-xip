@@ -32,16 +32,6 @@ int serial0_putchar(char ch)
     return 0;
 }
 //-------------------------------------------------------------
-// serial_getchar: Read character from UART Rx buffer
-//-------------------------------------------------------------
-int serial0_getchar (void)
-{
-    if (serial1_haschar())
-        return UART0_UDR;
-    else
-        return -1;
-}
-//-------------------------------------------------------------
 // serial_haschar: Is a character waiting in Rx buffer
 //-------------------------------------------------------------
 int serial0_haschar()
@@ -55,4 +45,14 @@ void serial0_putstr(char *str)
 {
     while (*str)
         serial0_putchar(*str++);
+}
+//-------------------------------------------------------------
+// serial_getchar: Read character from UART Rx buffer
+//-------------------------------------------------------------
+int serial0_getchar (void)
+{
+    if (serial0_haschar())
+        return UART0_UDR;
+    else
+        return -1;
 }

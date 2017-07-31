@@ -88,6 +88,10 @@ struct Flash_ID {
 
 uint8_t spi_probe_flash(uint8_t cs_from, uint8_t cs_to);
 void GDB_STUB_SECTION_TEXT spi_flash_read(uint8_t cs_num, uint32_t offset,
-                    uint8_t* dest, uint32_t size);
+                                          uint8_t* dest, uint32_t size);
+void GDB_STUB_SECTION_TEXT boot_spi_transfer_buf(
+                                         const uint8_t* txp, uint8_t *rxp, uint8_t len);
+void GDB_STUB_SECTION_TEXT boot_spi_init(enum enSPIClockDevider clockDevider,
+                                         enum enSPIMode mode);
 
 #endif // BOOT_SPI_H

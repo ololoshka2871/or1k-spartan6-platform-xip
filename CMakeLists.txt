@@ -85,6 +85,8 @@ set(SYSTEM_HEAP_SIZE            512
     CACHE STRING "System memory heap size")
 set(SYSTEM_FRINTF_FLOAT_SUPPORT OFF
     CACHE BOOL  "Support for frinting float by ee_printf()")
+set(SYSTEM_PERFORM_COREMARK_AT_BOOT OFF
+    CACHE BOOL  "Execture Coremark at boot")
 
 #---------------------------/SYSTEM---------------------------------------------
 
@@ -161,6 +163,8 @@ set(SIM_TEST_MDIO           OFF
     CACHE BOOL  "Bootloader firmware tests myminimac IP-core MDIO interface")
 set(SIM_TEST_I2C            OFF
     CACHE BOOL  "Bootloader firmware tests I2C interface")
+set(SIM_TEST_SPI            OFF
+    CACHE BOOL  "Bootloader firmware tests SPI interface")
 set(SIM_TEST_GPIO           OFF
     CACHE BOOL  "Bootloader firmware tests GPIO pins")
 set(SIM_TEST_CRC32          OFF

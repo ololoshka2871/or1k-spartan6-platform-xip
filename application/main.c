@@ -72,17 +72,13 @@ static void initAll() {
 #endif
 }
 
-
-extern int coremark_main(int argc, char *argv[]);
-
 int main(void)
 {
     initAll();
     EXIT_CRITICAL();
 
-    coremark_main(0, NULL);
-
     while(1) {
     }
+
     return 0;
 }

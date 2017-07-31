@@ -105,7 +105,6 @@ add_custom_target(mkldscript DEPENDS ${LD_SCRIPT_FILE})
 add_subdirectory(libbase)
 add_subdirectory(libhw)
 add_subdirectory(ibexukIP)
-add_subdirectory(coremark)
 
 include_directories(
     ${CMAKE_CURRENT_BINARY_DIR}
@@ -125,7 +124,7 @@ add_executable(${APPLICATION_ELF_NAME}
     )
 add_dependencies(${APPLICATION_ELF_NAME} gen_mac)
 target_link_libraries(${APPLICATION_ELF_NAME}
-    -Wl,--start-group hw ibexukIP base coremark -Wl,--end-group)
+    -Wl,--start-group hw ibexukIP base -Wl,--end-group)
 
 set(difenitions
     ${hwlib_difenitions}

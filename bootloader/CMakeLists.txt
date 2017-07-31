@@ -63,12 +63,15 @@ else()
 endif()
 
 add_subdirectory(testsrc)
+add_subdirectory(coremark)
+
+set_property(SOURCE ${BOOT_S} PROPERTY LANGUAGE C)
 
 add_executable(${PROJECT_NAME}.elf
     ${BOOT_S}
     )
 target_link_libraries(${PROJECT_NAME}.elf
-    ${BOOT_LIB}
+    -Wl,--start-group coremark ${BOOT_LIB} -Wl,--end-group
     )
 add_dependencies(${PROJECT_NAME}.elf ldsctipt)
 

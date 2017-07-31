@@ -101,8 +101,12 @@ void GDB_STUB_SECTION_TEXT gdb_putchar (char c)
 //-------------------------------------------------------------
 void GDB_STUB_SECTION_TEXT gdb_putstr(const char *str)
 {
-    while (*str)
-        gdb_putchar(*str++);
+    while (*str) {
+        char ch = *str++;
+        if (ch == '\n')
+            gdb_putchar('\r');
+        gdb_putchar(ch);
+    }
 }
 //-----------------------------------------------------------------
 // gdb_getchar:

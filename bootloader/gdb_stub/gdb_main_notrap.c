@@ -29,11 +29,15 @@
  *
  ****************************************************************************/
 
+#include <stddef.h>
+
 #include "gdb-stub-sections.h"
 
 extern void GDB_STUB_SECTION_TEXT try_load(void);
 extern void GDB_STUB_SECTION_TEXT gdb_putchar(char c);
 extern int  GDB_STUB_SECTION_BSS  _initial_trap;
+
+extern int coremark_main(int argc, char *argv[]);
 
 //-----------------------------------------------------------------
 // gdb_main
@@ -44,5 +48,11 @@ void GDB_STUB_SECTION_TEXT gdb_main(void)
     gdb_putchar('.');
 #endif /* NDEBUG */
 
+#ifdef SYSTEM_PERFORM_COREMARK_AT_BOOT
+    gdb_putstr("Startnig coremark benchmarking...\n\r");
+    coremark_main(0, NULL);
+    while(1);
+#else
     try_load();
+#endif
 }

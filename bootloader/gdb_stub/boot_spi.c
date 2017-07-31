@@ -105,6 +105,7 @@ uint8_t GDB_STUB_SECTION_TEXT spi_probe_flash(uint8_t cs_from, uint8_t cs_to) {
 
     boot_spi_init(SPI_CLOCK_DEV_256, SPI_MODE3);
     while(cs_from <= cs_to) {
+
         SPI_CS_SEL = cs_from;
 
         boot_spi_transfer_buf(cmd, (uint8_t*)&result, sizeof(cmd));

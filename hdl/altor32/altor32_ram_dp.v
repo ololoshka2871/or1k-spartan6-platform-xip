@@ -98,7 +98,7 @@ assign bdat_o = ram[rd_addr_b_q];
     integer i;
     initial 
     begin     
-        for (i=0;i<((2<< (SIZE-1)) - 1);i=i+1)
+        for (i=0;i<(2<< (SIZE-1));i=i+1)
         begin
             ram[i] = 0;
         end

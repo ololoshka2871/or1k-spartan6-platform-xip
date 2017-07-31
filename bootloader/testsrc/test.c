@@ -39,6 +39,7 @@
 #include "GPIO.h"
 #include "i2c.h"
 #include "crc32.h"
+#include "boot_spi.h"
 
 static void GDB_STUB_SECTION_TEXT test_freqmeter() {
     fm_init();
@@ -109,6 +110,14 @@ static void GDB_STUB_SECTION_TEXT test_i2c() {
     i2c_read_bus_mul(0, 0, res, sizeof(res));
 }
 
+static void GDB_STUB_SECTION_TEXT test_spi() {
+    uint8_t res[10] = {0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0xff, 0xfe, 0xaa, 0x55};
+
+    boot_spi_init(SPI_CLOCK_DEV_2, SPI_MODE3);
+
+    boot_spi_transfer_buf(res, res, sizeof(res));
+}
+
 static void GDB_STUB_SECTION_TEXT test_minmac_slotlogick() {
     miniMAC_control(true, true);
 
@@ -157,6 +166,10 @@ void GDB_STUB_SECTION_TEXT start_tests() {
 
 #ifdef SIM_TEST_I2C
     test_i2c();
+#endif
+
+#ifdef SIM_TEST_SPI
+    test_spi();
 #endif
 
 #ifdef SIM_TEST_GPIO

@@ -93,6 +93,10 @@ if (SIM_TEST_I2C)
     add_definitions(-DSIM_TEST_I2C)
 endif()
 
+if (PERIPHERIAL_ENABLE_I2C)
+     add_definitions(-DSIM_TEST_SPI)
+endif()
+
 if (SIM_TEST_GPIO)
     add_definitions(-DSIM_TEST_GPIO)
 endif()
