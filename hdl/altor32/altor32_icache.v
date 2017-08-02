@@ -82,6 +82,7 @@ parameter CACHE_LINE_SIZE_BYTES     = 2 ** CACHE_LINE_SIZE_WIDTH; /* 32 bytes / 
 parameter CACHE_TAG_ENTRIES         = 2 ** CACHE_LINE_ADDR_WIDTH ; /* 128 tag entries */
 parameter CACHE_DSIZE               = CACHE_NUM_WAYS * (2 ** CACHE_LINE_ADDR_WIDTH) * CACHE_LINE_SIZE_BYTES; /* 8KB data */
 parameter CACHE_DWIDTH              = CACHE_LINE_ADDR_WIDTH + CACHE_LINE_SIZE_WIDTH - 2; /* 10-bits */
+parameter CACHE_ADDR_FROM           = CACHE_LINE_ADDR_WIDTH + CACHE_LINE_SIZE_WIDTH - 1;
 
 parameter CACHE_TAG_WIDTH           = 16; /* 16-bit tag entry size */
 parameter CACHE_TAG_STAT_BITS       = 1 + (CACHE_NUM_WAYS-1);
@@ -147,11 +148,11 @@ reg [1:0]                   state_q;
 
 // Tag address from input PC or flopped version of it
 assign tag_address_w      = (state_q != STATE_CHECK) ? 
-                          miss_pc_q[CACHE_LINE_ADDR_WIDTH + CACHE_LINE_SIZE_WIDTH - 1:CACHE_LINE_SIZE_WIDTH] : 
-                          pc_i[CACHE_LINE_ADDR_WIDTH + CACHE_LINE_SIZE_WIDTH - 1:CACHE_LINE_SIZE_WIDTH];
+                          miss_pc_q[CACHE_ADDR_FROM:CACHE_LINE_SIZE_WIDTH] :
+                          pc_i[CACHE_ADDR_FROM:CACHE_LINE_SIZE_WIDTH];
 
 // Cache read address
-assign address_rd_w   = pc_i[CACHE_LINE_ADDR_WIDTH + CACHE_LINE_SIZE_WIDTH - 1:2];
+assign address_rd_w   = pc_i[CACHE_ADDR_FROM:2];
 
 // Cache miss output if requested PC is not in the tag memory
 wire miss0_w               = ~tag_out0_w[CACHE_TAG_VALID_BIT] | 

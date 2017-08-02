@@ -47,20 +47,28 @@ module tb_top;
             .flash_CS(flash_CS),
             .sck_o(sck_o),
             .mosi_o(mosi_o),
-            .miso_i(mosi_o),
-
+            .miso_i(mosi_o)
+`ifdef ETHERNET_ENABLED
+            ,
             .phy_rmii_rx_data(rmii_tx_data),
             .phy_rmii_crs(phy_tx_en),
             .phy_rmii_tx_data(rmii_tx_data),
             .phy_tx_en(phy_tx_en),
             .phy_rmii_clk(rmii_clk),
             .phy_mdclk(mii_mdclk),
-            .phy_mdio(mii_mdio),
+            .phy_mdio(mii_mdio)
+`endif
 
+`ifdef I2C_PRESENT
+            ,
             .i2c_sda(sda),
-            .i2c_scl(scl),
+            .i2c_scl(scl)
+`endif
 
+`ifdef GPIO_PRESENT
+            ,
             .gpio(gpio)
+`endif
 	);
 
         PULLUP PULLUP_sda (
