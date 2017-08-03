@@ -40,18 +40,43 @@ parameter CLK_HZ = `DEVICE_REF_CLOCK_HZ * `CLOCK_CPU_PLL_MULTIPLYER / `CLOCK_CPU
 parameter CLK_HZ = `DEVICE_REF_CLOCK_HZ * 1.0;
 `endif
 
-module tb_wb_spi_flash;
+module tb_xip_adapter;
 
     reg     [31:0]  addr;
-    wire    [7:0]   data;
+    wire    [31:0]  data;
     wire            ack;
+    reg             fetch_r;
 
     reg             clk;
     reg             reset;
-    reg             fetch_r;
 
     wire            spi_mosi, spi_miso, spi_cs, spi_sck;
 
+xip_adapter
+#(
+    .RAM_PROGRAMM_MEMORY_START(0),
+    .SPI_FLASH_PROGRAMM_START(0)
+) adapter (
+    .rst_i(reset),
+    .clk_i(clk),
+
+    .mm_addr_i(addr),
+    .mm_dat_o(data),
+    .mm_cyc_i(fetch_r),
+    .mm_ack_o(ack),
+
+    .cs_adr_i(4'h0),
+    .cs_sel_i(4'b0),
+    .cs_we_i(1'b0),
+    .cs_dat_i(32'h0),
+    .cs_dat_o(/* open */),
+    .cs_ack_o(/* open */),
+
+    .spi_mosi(spi_mosi),
+    .spi_miso(spi_miso),
+    .spi_sck_o(spi_sck),
+    .spi_cs_o(spi_cs)
+);
 
 spi_flash_simulator
 #(
@@ -69,45 +94,6 @@ spi_flash_simulator
     .spi_so_o(spi_miso)
 );
 
-spi_flash_sys_init
-#(
-    .SYS_CLK_RATE(CLK_HZ),
-    .FLASH_IDLE(2),
-    .DECODE_BITS(1),
-    .DEF_R_4(32'h0), // No initialisation
-    .DEF_R_5(32'h00000001)  // Enable memory-mapped interface at startup
-) controller (
-    .sys_rst_n(~reset),
-    .sys_clk(clk),
-    .sys_clk_en(1'b1),
-
-    .adr_i(4'b0),
-    .sel_i(1'b0),
-    .we_i(1'b0),
-    .dat_i(32'b0),
-    .dat_o(/* open */),
-    .ack_o(/* open */),
-
-    .fl_adr_i(addr),
-    .fl_sel_i(fetch_r),
-    .fl_we_i(1'b0),
-    .fl_dat_i(8'b0),
-    .fl_dat_o(data),
-    .fl_ack_o(ack),
-
-    .init_adr_o(/* open */),
-    .init_dat_o(/* open */),
-    .init_cyc_o(/* open */),
-    .init_ack_i(1'b0),
-    .init_fin_o(/* open */),
-
-    .spi_adr_o(/* open */),
-    .spi_cs_o(spi_cs),
-    .spi_sck_o(spi_sck),
-    .spi_so_o(spi_mosi),
-    .spi_si_i(spi_miso)
-);
-
 initial begin
     clk = 0;
     reset = 1;
@@ -119,22 +105,24 @@ initial begin
 
     #31
 
-    addr = 32'h1a2b3c4d;
+    addr = 32'h192a3b4c;
     fetch_r = 1;
 
+    /*
     #1860
     addr = 32'h1a2b3c4e;
     fetch_r = 0;
     #20
     fetch_r = 1;
+    */
 end
 
 
 always #10 clk <= !clk;
 
 always @(posedge clk) begin
-    //if (fetch_r)
-    //    fetch_r <= 0;
+    if (ack)
+        addr <= addr + 4;
 end
 
 endmodule
