@@ -41,7 +41,7 @@ file(GLOB_RECURSE
 file(GLOB_RECURSE
     SOC_HDL_VHDL
     FOLLOW_SYMLINKS
-    "*.vhdl"
+    "*.vhd*"
     )
 
 # Fake target: add sources to project tree (Qt Creator)

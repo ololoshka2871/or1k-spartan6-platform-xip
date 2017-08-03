@@ -33,23 +33,23 @@ cmake_minimum_required(VERSION 3.0.2)
 
 
 file(GLOB_RECURSE
-    TESTBENCH_HDL_V
+    WB_SPI_FLASH_HDL_V
     FOLLOW_SYMLINKS
-    "tb_*.v"
+    "*.v"
     )
 
-set(SPI_FLASH_SIM_DATA_FILE ${CMAKE_CURRENT_SOURCE_DIR}/spi_flash_sim.txt)
-set(TB_CONFIG_FILE_IN   ${CMAKE_CURRENT_SOURCE_DIR}/bench_cfg.vh.in)
-set(TB_CONFIG_FILE      ${CMAKE_CURRENT_BINARY_DIR}/bench_cfg.vh)
-
-configure_file(${TB_CONFIG_FILE_IN} ${TB_CONFIG_FILE} @ONLY)
+file(GLOB_RECURSE
+    WB_SPI_FLASH_HDL_VHDL
+    FOLLOW_SYMLINKS
+    "*.vhd*"
+    )
 
 # Fake target: add sources to project tree (Qt Creator)
-add_custom_target(testbench_sources
+add_custom_target(wb_spi_flash_sources
     SOURCES
-	${TESTBENCH_HDL_V}
+        ${WB_SPI_FLASH_HDL_V} ${WB_SPI_FLASH_HDL_VHDL}
     )
 
-set(TESTBENCH_HDL_V	${TESTBENCH_HDL_V}                      PARENT_SCOPE)
-set(TESTBENCH_DIR	${CMAKE_CURRENT_BINARY_DIR}             PARENT_SCOPE)
-set(TESTBENCH_TOP       ${CMAKE_CURRENT_SOURCE_DIR}/tb_top.v    PARENT_SCOPE)
+set(WB_SPI_FLASH_HDL_V              ${WB_SPI_FLASH_HDL_V}           PARENT_SCOPE)
+set(WB_SPI_FLASH_HDL_VHDL           ${WB_SPI_FLASH_HDL_VHDL}        PARENT_SCOPE)
+set(WB_SPI_FLASH_INCLUDE_PATH       ${CMAKE_CURRENT_SOURCE_DIR}     PARENT_SCOPE)

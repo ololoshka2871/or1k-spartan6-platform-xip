@@ -79,6 +79,7 @@ add_subdirectory(memory)
 add_subdirectory(mdio)
 add_subdirectory(myminimac)
 add_subdirectory(utils)
+add_subdirectory(wb_spi_flash)
 
 #--------------------------------config-----------------------------------------
 
@@ -122,6 +123,8 @@ build_prj(MDIO_PRJ	    "verilog mdio	%f\n"	"${MDIO_HDL_V}")
 build_prj(I2C_PRJ           "vhdl    i2c        %f\n"   "${I2C_HDL_VHDL}")
 build_prj(MYMINMAC_PRJ	    "verilog myminimac	%f\n"	"${MYMINMAC_HDL_V}")
 build_prj(MYMINMAC_VHDL_PRJ "vhdl    myminimac	%f\n"	"${MYMINMAC_HDL_VHDL}")
+build_prj(WB_SPI_FLASH_PRJ  "verilog wb_spi_flash	%f\n"	"${WB_SPI_FLASH_HDL_V}")
+build_prj(WB_SPI_FLASH_VHDL_PRJ "vhdl    wb_spi_flash	%f\n"	"${WB_SPI_FLASH_HDL_VHDL}")
 build_prj(UTILS_PRJ	    "verilog utils	%f\n"	"${UTILS_HDL_V}")
 build_prj(CONFIG_PRJ        "verilog config     %f\n"   "${config_v_file_name}")
 
@@ -134,6 +137,8 @@ set(PRJ_TEXT
     ${I2C_PRJ}
     ${MYMINMAC_PRJ}
     ${MYMINMAC_VHDL_PRJ}
+    ${WB_SPI_FLASH_PRJ}
+    ${WB_SPI_FLASH_VHDL_PRJ}
     ${UTILS_PRJ}
     ${TOP_PRJ}
     )
@@ -162,7 +167,7 @@ configure_file(${UT_IN_FILE_NAME} ${UT_FILE_NAME} @ONLY)
 #-------------------------------------sym---------------------------------------
 add_subdirectory(testbench)
 
-set(prj_libs altor32 soc memory utils work mdio i2c myminimac)
+set(prj_libs altor32 soc memory utils work mdio i2c myminimac wb_spi_flash)
 set(testlibs_list)
 foreach(l ${prj_libs})
     list(APPEND testlibs_list -lib ${l})
@@ -173,6 +178,7 @@ set(test_include_path
     -i ${CMAKE_CURRENT_SOURCE_DIR}
     -i ${UTILS_INCLUDE_PATH}
     -i ${MYMINIMAC_INCLUDE_PATH}
+    -i ${WB_SPI_FLASH_INCLUDE_PATH}
     )
 
 build_prj(XILINX_VERILOG_glbl_PRJ   "verilog work	%f\n"	"${XILINX_VERILOG_glbl}")
