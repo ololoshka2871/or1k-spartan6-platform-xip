@@ -43,9 +43,8 @@ parameter CLK_HZ = `DEVICE_REF_CLOCK_HZ * 1.0;
 module tb_wb_spi_flash;
 
     reg     [31:0]  addr;
-    wire    [7:0]  data;
-    wire            valid;
-    wire            final;
+    wire    [7:0]   data;
+    wire            ack;
     wire    [31:0]  resp_addr;
 
     reg             clk;
@@ -61,7 +60,7 @@ spi_flash_simulator
     .FLASH_ADR_BITS(8),
     .FLASH_INIT(`SPI_FLASH_SIM_DATA_FILE)
 ) spi_flash_0 (
-    .sys_rst_n(reset),
+    .sys_rst_n(~reset),
     .sys_clk(clk),
     .sys_clk_en(1'b1),
 
@@ -75,9 +74,11 @@ spi_flash_sys_init
 #(
     .SYS_CLK_RATE(CLK_HZ),
     .FLASH_IDLE(2),
-    .DECODE_BITS(1)
+    .DECODE_BITS(1),
+    .DEF_R_4(32'h0), // No initialisation
+    .DEF_R_5(32'h00000001)  // Enable memory-mapped interface at startup
 ) controller (
-    .sys_rst_n(reset),
+    .sys_rst_n(~reset),
     .sys_clk(clk),
     .sys_clk_en(1'b1),
 
@@ -93,7 +94,7 @@ spi_flash_sys_init
     .fl_we_i(1'b0),
     .fl_dat_i(8'b0),
     .fl_dat_o(data),
-    .fl_ack_o(valid),
+    .fl_ack_o(ack),
 
     .init_adr_o(/* open */),
     .init_dat_o(/* open */),
@@ -119,7 +120,7 @@ initial begin
 
     #31
 
-    addr = 32'h1a1a1a1a;
+    addr = 32'h1a2b3c4d;
     fetch_r = 1;
 end
 
@@ -127,8 +128,8 @@ end
 always #10 clk <= !clk;
 
 always @(posedge clk) begin
-    if (fetch_r)
-        fetch_r <= 0;
+    //if (fetch_r)
+    //    fetch_r <= 0;
 end
 
 endmodule
