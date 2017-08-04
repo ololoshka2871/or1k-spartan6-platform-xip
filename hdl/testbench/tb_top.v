@@ -7,9 +7,15 @@
 // 
 ////////////////////////////////////////////////////////////////////////////////
 
-`include "config.v"
+`include "bench_cfg.vh"
 
 module tb_top;
+
+	`ifdef CLOCK_USE_PLL
+	parameter CLK_HZ = `DEVICE_REF_CLOCK_HZ * `CLOCK_CPU_PLL_MULTIPLYER / `CLOCK_CPU_CLOCK_DEVIDER * 1.0;
+	`else
+	parameter CLK_HZ = `DEVICE_REF_CLOCK_HZ * 1.0;
+	`endif
 
 	// Inputs
 	reg clk;
@@ -18,19 +24,19 @@ module tb_top;
 	// Outputs
         wire tx;
 	
-	reg rst = 1'b1;
+        reg      rst;
 
         wire     flash_CS;
-        wire     sck_o;
-        wire     mosi_o;
+        wire     sck;
+        wire     mosi;
 
         wire     phy_tx_en;
         reg      rmii_clk;
         wire     mii_mdclk;
         wire     mii_mdio;
-        wire  [1:0]   rmii_tx_data;
+        wire    [1:0]                   rmii_tx_data;
 
-        wire [`GPIO_COUNT-1:0]     gpio;
+        wire    [`GPIO_COUNT-1:0]       gpio;
 
         wire sda;
         wire scl;
@@ -45,9 +51,9 @@ module tb_top;
 
             .rst_i(rst),
             .flash_CS(flash_CS),
-            .sck_o(sck_o),
-            .mosi_o(mosi_o),
-            .miso_i(mosi_o)
+            .sck_o(sck),
+            .mosi_o(mosi),
+            .miso_i(miso)
 `ifdef ETHERNET_ENABLED
             ,
             .phy_rmii_rx_data(rmii_tx_data),
@@ -77,6 +83,22 @@ module tb_top;
             .O(scl)
         );
 
+        spi_flash_simulator
+        #(
+            .SYS_CLK_RATE(CLK_HZ),
+            .FLASH_ADR_BITS(8),
+            .FLASH_INIT(`SPI_FLASH_SIM_DATA_FILE)
+        ) spi_flash_0 (
+            .sys_rst_n(rst),
+            .sys_clk(clk),
+            .sys_clk_en(1'b1),
+
+            .spi_cs_i(flash_CS),
+            .spi_sck_i(sck),
+            .spi_si_i(mosi),
+            .spi_so_o(miso)
+        );
+
         genvar gpio_p;
 
         generate
@@ -91,6 +113,10 @@ module tb_top;
             clk = 0;
             rx = 0;
             rmii_clk = 1;
+            rst = 0;
+            #100
+            rst = 1;
+
             // Wait 100 ns for global reset to finish
             #100;
 

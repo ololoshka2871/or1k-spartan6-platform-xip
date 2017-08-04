@@ -30,4 +30,7 @@
 //*
 //****************************************************************************/
 
+`include "config.v"
+
 `define SPI_FLASH_SIM_DATA_FILE     "@SPI_FLASH_SIM_DATA_FILE@"
+

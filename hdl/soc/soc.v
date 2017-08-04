@@ -53,6 +53,12 @@ module soc
     uart0_tx_o,
     uart0_rx_i,
 
+    // memory-mapped spi flash interface
+    mm_addr_i,
+    mm_dat_o,
+    mm_cyc_i,
+    mm_ack_o,
+
     // Memory interface
     io_addr_i,
     io_data_i,
@@ -93,6 +99,8 @@ module soc
 //-----------------------------------------------------------------
 // Params
 //-----------------------------------------------------------------
+parameter           INSTR_MEMORY_BASE    = 32'h0;
+parameter           SPI_FLASH_PROGRAMM_START    = 32'h0;
 parameter  [31:0]   CLK_KHZ              = 12288;
 parameter  [31:0]   EXTERNAL_INTERRUPTS  = 1;
 parameter           BAUD_UART0           = 115200;
@@ -111,6 +119,11 @@ input [(EXTERNAL_INTERRUPTS - 1):0]  ext_intr_i /*verilator public*/;
 output                  intr_o /*verilator public*/;
 output                  uart0_tx_o /*verilator public*/;
 input                   uart0_rx_i /*verilator public*/;
+// memory-mapped spi flash interface
+input   [31:0]          mm_addr_i /*verilator public*/;
+output  [31:0]          mm_dat_o /*verilator public*/;
+input                   mm_cyc_i /*verilator public*/;
+output                  mm_ack_o /*verilator public*/;
 // Memory Port
 input [31:0]            io_addr_i /*verilator public*/;
 input [31:0]            io_data_i /*verilator public*/;
@@ -125,7 +138,7 @@ input  [15:0]           devided_clocks /*verilator public*/;
 output                  sck_o /*verilator public*/;
 output                  mosi_o /*verilator public*/;
 input                   miso_i /*verilator public*/;
-output [6:0]            spi_cs_o /*verilator public*/;
+output             		spi_cs_o /*verilator public*/;
 //MDIO
 `ifdef ETHERNET_ENABLED
 inout                   mdio /*verilator public*/;
@@ -172,11 +185,10 @@ wire               intr_we;
 wire               intr_stb;
 
 wire [7:0]         spi_addr;
-wire [31:0]        spi_data_o;
-wire [31:0]        spi_data_i;
+wire [31:0]        spi_data_w;
+wire [31:0]        spi_data_r;
 wire               spi_we;
 wire               spi_stb;
-wire               spi_intr;
 
 wire [7:0]         mdio_addr;
 wire               mdio_stb;
@@ -242,8 +254,8 @@ u2_soc
 
     // SPI = 0x12000300 - 0x120003FF
     .periph3_addr_o(spi_addr),
-    .periph3_data_o(spi_data_o),
-    .periph3_data_i(spi_data_i),
+    .periph3_data_o(spi_data_w),
+    .periph3_data_i(spi_data_r),
     .periph3_we_o(spi_we),
     .periph3_stb_o(spi_stb),
 
@@ -362,7 +374,7 @@ u_intr
     .intr0_i(uart0_intr),
     .intr1_i(timer_intr_systick),
     .intr2_i(timer_intr_hires),
-    .intr3_i(spi_intr),
+    .intr3_i(1'b0),
     .intr4_i(1'b0),
     .intr5_i(mdio_intr),
     .intr6_i(i2c_intr),
@@ -380,27 +392,31 @@ u_intr
 //-----------------------------------------------------------------
 // SPI Controller
 //-----------------------------------------------------------------
-spi_boot
+xip_adapter
 #(
-    .WB_DATA_WIDTH(32),
-    .SPI_CLK_DEVIDER(`BAUD_SPI_CLK_DEVIDER_LEN)
-) spi (
-    .clk_i(clk_i),
+    .MASTER_CLK_FREQ_HZ(CLK_KHZ * 1000),
+    .RAM_PROGRAMM_MEMORY_START(INSTR_MEMORY_BASE),
+    .SPI_FLASH_PROGRAMM_START(SPI_FLASH_PROGRAMM_START)
+) spi_controller (
     .rst_i(rst_i),
-    .cyc_i(io_cyc_i),
-    .stb_i(spi_stb),
-    .adr_i(spi_addr),
-    .we_i(spi_we),
-    .dat_i(spi_data_o),
-    .dat_o(spi_data_i),
-    .ack_o(/*open*/),
-    .inta_o(spi_intr),
+    .clk_i(clk_i),
 
-    .sck_o(sck_o),
-    .mosi_o(mosi_o),
-    .miso_i(miso_i),
+    .mm_addr_i(mm_addr_i),
+    .mm_dat_o(mm_dat_o),
+    .mm_cyc_i(mm_cyc_i),
+    .mm_ack_o(mm_ack_o),
 
-    .cs_o(spi_cs_o)
+    .cs_adr_i(spi_addr[3:0]),
+    .cs_sel_i(spi_stb),
+    .cs_we_i(spi_we),
+    .cs_dat_i(spi_data_w),
+    .cs_dat_o(spi_data_r),
+    .cs_ack_o(/*open*/),
+
+    .spi_mosi(mosi_o),
+    .spi_miso(miso_i),
+    .spi_sck_o(sck_o),
+    .spi_cs_o(spi_cs_o)
 );
 
 //-----------------------------------------------------------------

@@ -87,6 +87,8 @@ set(SYSTEM_FRINTF_FLOAT_SUPPORT OFF
     CACHE BOOL  "Support for frinting float by ee_printf()")
 set(SYSTEM_PERFORM_COREMARK_AT_BOOT OFF
     CACHE BOOL  "Execture Coremark at boot")
+set(SYSTEM_INSTR_MEMORY_START   0x10000000
+    CACHE STRING  "Instruction memory start")
 
 #---------------------------/SYSTEM---------------------------------------------
 
@@ -105,6 +107,7 @@ set(PERIPHERIAL_ENABLE_I2C      ON
     CACHE BOOL  "Enable i2c IPCore at 0x12000600")
 set(PERIPHERIAL_ENABLE_ETHERNET ON
     CACHE BOOL  "Enable ETHERNET IPCore at 0x11000000")
+
 #------------------------------- /peripherial ----------------------------------
 
 #---------------------------------- SERIALs ------------------------------------
@@ -194,8 +197,6 @@ message(STATUS
 message(STATUS "CPU clock is ${CPU_CLOCK_HZ}")
 
 #-------------------------------/Calculable-------------------------------------
-
-set(MAIN_MEMORY_BASE        0x10000000) # memory base address
 
 #---------------------------------bootloader------------------------------------
 add_subdirectory(bootloader)

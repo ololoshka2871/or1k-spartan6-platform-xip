@@ -30,6 +30,7 @@
 //****************************************************************************/
 
 `define     DEVICE_PART_FAMILY          @DEVICE_PART_FAMILY@
+`define     @DEVICE_SPI_FLASH_CHIP_NAME@
 
 `define     MEMORY_UNIT_SIZE            @MEMORY_UNIT_SIZE@
 `define	    NUM_OF_SYS_MEM_UNITS        @SYSTEM_FPGA_BMEMORY_USE@
@@ -37,13 +38,15 @@
 `define     DEVICE_REF_CLOCK_HZ         @DEVICE_REF_CLOCK_HZ@
 `define     INPUT_CLOCK_PERIOD_NS_F     @INPUT_CLOCK_PERIOD_NS_F@
 
+//boot
+`define     BOOT_VECTOR                 @BOOT_VECTOR_V_FORMATED@
+`define     SPI_FLASH_PROGRAMM_START    @SPI_FLASH_PROGRAMM_START_V_FORMATED@
+
 // Clock
 `define     CLOCK_USE_PLL               @CLOCK_USE_PLL@
 
 `define     CLOCK_CPU_PLL_MULTIPLYER    @CLOCK_CPU_PLL_MULTIPLYER@
 `define     CLOCK_CPU_CLOCK_DEVIDER     @CLOCK_CPU_CLOCK_DEVIDER@
-
-`define     BAUD_SPI_CLK_DEVIDER_LEN    @BAUD_SPI_CLK_DEVIDER_LEN@
 
 // board
 `define     @DEVICE_BOARD_NAME_CFG@
@@ -60,11 +63,6 @@
 
 // uarts
 `define     BAUD_UART0                  @BAUD_UART0@
-
-// inputs
-`define     F_INPUTS_COUNT              @F_INPUTS_COUNT@
-@USE_PHISICAL_INPUTS@
-@MASTER_HYBRID_COUNTER_STR@
 
 // mdio
 `define     BAUD_MDIO                   @BAUD_MDIO@

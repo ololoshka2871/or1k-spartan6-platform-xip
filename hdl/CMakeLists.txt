@@ -97,6 +97,10 @@ else()
     set(I2C_OVER_GPIO_SCL_PIN_STR "// SCL is not gpio pin")
 endif()
 
+string(REGEX REPLACE "0x(.*)" "32'h\\1" BOOT_VECTOR_V_FORMATED              ${SYSTEM_INSTR_MEMORY_START})
+string(REGEX REPLACE "0x(.*)" "32'h\\1" SPI_FLASH_PROGRAMM_START_V_FORMATED ${USER_CODE_FLASH_OFFSET})
+set(DEVICE_SPI_FLASH_CHIP_NAME  DEVICE_SPI_FLASH_CHIP_${DEVICE_SPI_FLASH_CHIP})
+
 #-------------------------------top module--------------------------------------
 
 file(GLOB
@@ -206,7 +210,7 @@ foreach(testfile ${TESTBENCH_HDL_V})
 	COMMAND
 	    ${SCRIPTS_DIR}/checksrc.sh ${test_prj_file}.tmp ${test_prj_file}
 	DEPENDS
-	    memory_refresh_sim
+            memory_refresh_sim spi_flash_test_image
         COMMENT
             "Refreshing ${testname}.prj"
 	)

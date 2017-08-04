@@ -495,7 +495,7 @@ u_wb
 
     // Request
     .fetch_i(mem_fetch_w),
-    .burst_i(1'b1),
+    .burst_i(1'b0), // 1
     .address_i(miss_pc_q),
 
     // Response

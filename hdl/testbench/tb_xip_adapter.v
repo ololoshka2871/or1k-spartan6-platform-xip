@@ -31,7 +31,6 @@
 //*
 //****************************************************************************/
 
-`include "config.v"
 `include "bench_cfg.vh"
 
 `ifdef CLOCK_USE_PLL
@@ -54,6 +53,7 @@ module tb_xip_adapter;
 
 xip_adapter
 #(
+    .MASTER_CLK_FREQ_HZ(CLK_HZ),
     .RAM_PROGRAMM_MEMORY_START(0),
     .SPI_FLASH_PROGRAMM_START(0)
 ) adapter (
@@ -66,7 +66,7 @@ xip_adapter
     .mm_ack_o(ack),
 
     .cs_adr_i(4'h0),
-    .cs_sel_i(4'b0),
+    .cs_sel_i(1'b0),
     .cs_we_i(1'b0),
     .cs_dat_i(32'h0),
     .cs_dat_o(/* open */),

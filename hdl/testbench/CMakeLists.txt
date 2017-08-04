@@ -38,7 +38,17 @@ file(GLOB_RECURSE
     "tb_*.v"
     )
 
-set(SPI_FLASH_SIM_DATA_FILE ${CMAKE_CURRENT_SOURCE_DIR}/spi_flash_sim.txt)
+
+set(SPI_FLASH_SIM_DATA_FILE ${CMAKE_CURRENT_BINARY_DIR}/img.txt)
+add_custom_command(
+    OUTPUT  ${SPI_FLASH_SIM_DATA_FILE}
+    DEPENDS ${BOOTLOADER_IMAGE}
+    COMMAND
+        xxd -ps -c 1 ${BOOTLOADER_IMAGE} > ${SPI_FLASH_SIM_DATA_FILE}
+    )
+add_custom_target(spi_flash_test_image DEPENDS ${SPI_FLASH_SIM_DATA_FILE})
+
+
 set(TB_CONFIG_FILE_IN   ${CMAKE_CURRENT_SOURCE_DIR}/bench_cfg.vh.in)
 set(TB_CONFIG_FILE      ${CMAKE_CURRENT_BINARY_DIR}/bench_cfg.vh)
 
@@ -47,7 +57,7 @@ configure_file(${TB_CONFIG_FILE_IN} ${TB_CONFIG_FILE} @ONLY)
 # Fake target: add sources to project tree (Qt Creator)
 add_custom_target(testbench_sources
     SOURCES
-	${TESTBENCH_HDL_V}
+        ${TESTBENCH_HDL_V} ${TB_CONFIG_FILE_IN}
     )
 
 set(TESTBENCH_HDL_V	${TESTBENCH_HDL_V}                      PARENT_SCOPE)

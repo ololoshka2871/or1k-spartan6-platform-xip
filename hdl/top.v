@@ -128,7 +128,6 @@ wire[3:0]           imem_sel;
 wire                imem_stb;
 wire                imem_cyc;
 wire                imem_ack;
-wire                imem_stall;
 
 wire[31:0]          sf_addr;
 wire[31:0]          sf_data_r;
@@ -144,17 +143,10 @@ wire                sf_stall;
 wire                clk;
 wire                clk_ref;
 
-wire		    clk_io;
-wire[6:0]           spi_cs_o;
+wire                clk_io;
+wire                spi_cs_o;
 
 wire[2:0]           ext_intr;
-
-`ifdef USE_PHISICAL_INPUTS
-`else
-wire[`F_INPUTS_COUNT-1:0] Fin;
-`endif
-
-wire[`F_INPUTS_COUNT-1:0] Fin_inv_pars;
 
 wire                rmii_clk;
 
@@ -174,7 +166,7 @@ wb_dp_ram_primitive
 sys_ram
 (
     .rst_i(reset),
-
+    /*
     .a_clk(clk),
     .a_adr_i(imem_addr[RAM_ADDRESS_LEN-1:0]),
     .a_dat_i(32'b0),
@@ -184,7 +176,18 @@ sys_ram
     .a_stb_i(imem_stb),
     .a_ack_o(imem_ack),
     .a_cyc_i(imem_cyc),
-    .a_stall_o(imem_stall),
+    .a_stall_o(),
+    */
+    .a_clk(1'b0),
+    .a_adr_i(32'b0),
+    .a_dat_i(32'b0),
+    .a_dat_o(/*open*/),
+    .a_we_i(1'b0),
+    .a_sel_i(4'b0),
+    .a_stb_i(1'b0),
+    .a_ack_o(/*open*/),
+    .a_cyc_i(1'b0),
+    .a_stall_o(/*open*/),
     
     .b_clk(clk),
     .b_adr_i(dmem_addr[RAM_ADDRESS_LEN-1:0]),
@@ -202,8 +205,8 @@ sys_ram
 cpu_if
 #(
     .CLK_KHZ(CLK_KHZ),
-    .BOOT_VECTOR(32'h10000000),
-    .ISR_VECTOR(32'h10000000),
+    .BOOT_VECTOR(`BOOT_VECTOR),
+    .ISR_VECTOR(`BOOT_VECTOR),
     .ENABLE_ICACHE("ENABLED"),
     .ENABLE_DCACHE("DISABLED"),
     .REGISTER_FILE_TYPE("XILINX")
@@ -225,7 +228,7 @@ u_cpu
     .imem0_cti_o(/* open */),
     .imem0_cyc_o(imem_cyc),
     .imem0_stb_o(imem_stb),
-    .imem0_stall_i(imem_stall),
+    .imem0_stall_i(1'b0),
     .imem0_ack_i(imem_ack),
     
     // Data Memory 0 (0x10000000 - 0x10FFFFFF)
@@ -306,6 +309,8 @@ sf (
 // CPU SOC
 soc
 #(
+    .INSTR_MEMORY_BASE(`BOOT_VECTOR),
+    .SPI_FLASH_PROGRAMM_START(`SPI_FLASH_PROGRAMM_START),
     .CLK_KHZ(CLK_KHZ),
     .ENABLE_SYSTICK_TIMER("ENABLED"),
     .ENABLE_HIGHRES_TIMER("ENABLED"),
@@ -324,6 +329,12 @@ u_soc
 
     .uart0_tx_o(tx0),
     .uart0_rx_i(rx0),
+
+    // memory-mapped spi flash
+    .mm_addr_i(imem_addr),
+    .mm_dat_o(imem_data),
+    .mm_cyc_i(imem_cyc),
+    .mm_ack_o(imem_ack),
 
     // Memory Port
     .io_addr_i(soc_addr),    
@@ -363,7 +374,7 @@ u_soc
 //-----------------------------------------------------------------
 
 // Reset Generator
-always @(posedge clk) 
+always @(posedge clk)
 if (rst_i == 1'b0)
     reset       <= 1'b1;
 else
@@ -372,7 +383,7 @@ else
 //    rst_next    <= 1'b0;
 
 // flash_CS
-assign flash_CS = spi_cs_o[0];
+assign flash_CS = spi_cs_o;
 
 //-----------------------------------------------------------------
 // Unused pins

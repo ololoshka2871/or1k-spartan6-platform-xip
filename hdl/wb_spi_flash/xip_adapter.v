@@ -29,10 +29,9 @@
 //*
 //****************************************************************************/
 
-`include "config.v"
-
 module xip_adapter
 #(
+    parameter MASTER_CLK_FREQ_HZ            = 50000000,
     // need alignment X & 2'b11 == 2'b00
     parameter RAM_PROGRAMM_MEMORY_START         = 32'h0,
     parameter SPI_FLASH_PROGRAMM_START          = 32'h0
@@ -49,7 +48,7 @@ module xip_adapter
 
     // classic spi module interface
     input   wire    [3:0]                   cs_adr_i,
-    input   wire    [3:0]                   cs_sel_i,
+    input   wire                            cs_sel_i,
     input   wire                            cs_we_i,
     input   wire    [31:0]                  cs_dat_i,
     output  wire    [31:0]                  cs_dat_o,
@@ -82,7 +81,7 @@ assign mm_dat_o = { data_buf[0], data_buf[1], data_buf[2], data_buf[3] };
 
 ///
 
-always @(posedge clk_i) begin
+always @(posedge clk_i or posedge rst_i) begin
     if (rst_i) begin
         busy <= 1'b0;
         spi_transaction <= 1'b0;
@@ -109,7 +108,7 @@ always @(posedge clk_i) begin
                     end
                 end
             end
-        end else if (mm_cyc_i) begin
+        end else if (mm_cyc_i & ~mm_ack_o) begin
             // start
             busy <= 1'b1;
             spi_transaction <= 1'b1;
@@ -119,16 +118,9 @@ end
 
 ///
 
-`ifdef CLOCK_USE_PLL
-parameter CLK_HZ = `DEVICE_REF_CLOCK_HZ * `CLOCK_CPU_PLL_MULTIPLYER / `CLOCK_CPU_CLOCK_DEVIDER * 1.0;
-`else
-parameter CLK_HZ = `DEVICE_REF_CLOCK_HZ * 1.0;
-`endif
-
-
 spi_flash_sys_init
 #(
-    .SYS_CLK_RATE(CLK_HZ),
+    .SYS_CLK_RATE(MASTER_CLK_FREQ_HZ * 1.0),
     .FLASH_IDLE(1),
     .DECODE_BITS(1),
     .DEF_R_4(32'h0), // No initialisation
@@ -139,7 +131,7 @@ spi_flash_sys_init
     .sys_clk_en(1'b1),
 
     .adr_i(cs_adr_i),
-    .sel_i(cs_sel_i[0]),
+    .sel_i(cs_sel_i),
     .we_i(cs_we_i),
     .dat_i(cs_dat_i),
     .dat_o(cs_dat_o),
