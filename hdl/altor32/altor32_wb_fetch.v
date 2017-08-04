@@ -90,7 +90,7 @@ wire [FETCH_WORDS_W-1:0] next_word_w  = fetch_word_q + 1;
 
 wire penultimate_word_w  = (fetch_word_q == ({FETCH_WORDS_W{1'b1}}-1));
 
-wire final_resp_w        = ((resp_word_q  == {FETCH_WORDS_W{1'b1}}) | ~burst_i);
+wire final_resp_w        = ((resp_word_q  == {FETCH_WORDS_W{1'b1}}) /*| ~burst_i*/);
 
 //-----------------------------------------------------------------
 // Pipelined Wishbone Master
