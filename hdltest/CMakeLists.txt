@@ -42,7 +42,7 @@ file(GLOB_RECURSE
 set(SPI_FLASH_SIM_DATA_FILE ${CMAKE_CURRENT_BINARY_DIR}/img.txt)
 add_custom_command(
     OUTPUT  ${SPI_FLASH_SIM_DATA_FILE}
-    DEPENDS ${FIRMWARE_SIM_IMG_FILE_NAME_BIN}
+    DEPENDS ${FIRMWARE_SIM_IMG_FILE_NAME_BIN} firmwarebinary
     COMMAND
         xxd -ps -c 1 ${FIRMWARE_SIM_IMG_FILE_NAME_BIN} > ${SPI_FLASH_SIM_DATA_FILE}
     COMMENT
@@ -72,7 +72,7 @@ foreach(l ${prj_libs})
 endforeach()
 
 build_prj(XILINX_VERILOG_glbl_PRJ   "verilog work	%f\n"	"${XILINX_VERILOG_glbl}")
-build_prj(MEMORY_HDL_SIM_PRJ	    "verilog memory	%f\n"	"${MEMORY_HDL_SIM_V}") #
+build_prj(MEMORY_HDL_SIM_PRJ	    "verilog memory	%f\n"	"${MEMORY_HDL_SIM_V}")
 
 foreach(testfile ${TESTBENCH_HDL_V})
     string(REGEX REPLACE ".*/(.*)\\.v" "\\1" testname ${testfile})

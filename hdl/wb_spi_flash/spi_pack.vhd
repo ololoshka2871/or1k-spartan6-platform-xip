@@ -1388,6 +1388,21 @@ type FSM_STATE_TYPE is (AWAIT_CMD, AWAIT_ADR_2, AWAIT_ADR_1, AWAIT_ADR_0,
                         AWAIT_CS_HI, STORE_BYTE);
 signal fsm_state      : FSM_STATE_TYPE;
 
+--inmpementes in verilog from verilog
+component flash_sim_memory
+    generic(
+      INIT_FILE : string;
+      ADR_WIDTH : natural;
+      DAT_WIDTH : natural
+    );
+    port (
+      clk       : in std_logic;
+      adr_i     : in unsigned(ADR_WIDTH-1 downto 0);
+      we_i      : in std_logic;
+      dat_i     : in unsigned(DAT_WIDTH-1 downto 0);
+      dat_o     : out unsigned(DAT_WIDTH-1 downto 0)
+    );
+end component;
 
 -----------------------------------------------------------------------------
 begin
@@ -1586,31 +1601,22 @@ begin
     end if; -- sys_clk
   end process;
 
+
   -- This BRAM contains the simulated FLASH contents
-  flash_ram : block_ram_dp_writethrough_hexfile_init
+  flash_ram : flash_sim_memory
     generic map(
-      init_file  => FLASH_INIT,
-      fil_width  => 8,
-      adr_width  => FLASH_ADR_BITS,
-      dat_width  => 8
+      INIT_FILE => FLASH_INIT,
+      ADR_WIDTH => FLASH_ADR_BITS,
+      DAT_WIDTH => 8
     )
     port map (
-       clk_a    => sys_clk,
-       clk_b    => sys_clk,
-
-       adr_a_i  => array_adr,
-       adr_b_i  => to_unsigned(0,FLASH_ADR_BITS),
-
-       we_a_i   => flash_we,
-       en_a_i   => '1',
-       dat_a_i  => array_dat_wr,
-       dat_a_o  => flash_dat,
-
-       we_b_i   => '0',
-       en_b_i   => '0',
-       dat_b_i  => to_unsigned(0,8),
-       dat_b_o  => open
+      clk       => sys_clk,
+      adr_i     => array_adr,
+      we_i      => flash_we,
+      dat_i     => array_dat_wr,
+      dat_o     => flash_dat
     );
+
   flash_we <= '1' when (fsm_state=STORE_BYTE or sector_erase='1') else '0';
   array_adr <= flash_adr when sector_erase='0' else u_resize(erase_adr,array_adr'length);
   erase_adr <= reg_adr(reg_adr'length-1 downto SECTOR_BITS) & sector_adr;

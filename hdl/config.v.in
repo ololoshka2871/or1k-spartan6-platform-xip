@@ -31,6 +31,7 @@
 
 `define     DEVICE_PART_FAMILY          @DEVICE_PART_FAMILY@
 `define     @DEVICE_SPI_FLASH_CHIP_NAME@
+`define     SPI_FLASH_SIZE              @SPI_FLASH_SIZE_BYTES@
 
 `define     MEMORY_UNIT_SIZE            @MEMORY_UNIT_SIZE@
 `define	    NUM_OF_SYS_MEM_UNITS        @SYSTEM_FPGA_BMEMORY_USE@

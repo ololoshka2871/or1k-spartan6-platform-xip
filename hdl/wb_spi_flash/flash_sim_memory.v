@@ -30,6 +30,34 @@
 //*
 //****************************************************************************/
 
-`include "config.v"
+module flash_sim_memory
+#(
+    parameter INIT_FILE                     = "NONE",
+    parameter ADR_WIDTH                     = 8,
+    parameter DAT_WIDTH                     = 8
+) (
+    input   wire                            clk,
+    input   wire    [ADR_WIDTH-1:0]         adr_i,
+    input   wire                            we_i,
+    input   wire    [DAT_WIDTH-1:0]         dat_i,
+    output  reg     [DAT_WIDTH-1:0]         dat_o
+);
 
-`define SPI_FLASH_SIM_DATA_FILE     "@SPI_FLASH_SIM_DATA_FILE@"
+parameter MEM_CELLS_COUNT   = 2 ** ADR_WIDTH;
+
+reg [DAT_WIDTH-1:0] memory[MEM_CELLS_COUNT-1:0];
+
+always @(posedge clk) begin
+    if (we_i) begin
+        memory[adr_i] <= dat_i;
+        dat_o <= dat_i;
+    end else
+        dat_o <= memory[adr_i];
+end
+
+initial begin
+    if (INIT_FILE != "NONE")
+        $readmemh(INIT_FILE, memory);
+end
+
+endmodule

@@ -77,6 +77,8 @@ module tb_top;
 `endif
 	);
 
+        parameter FLASH_CHIP_ADDR_LEN = $clog2(`SPI_FLASH_SIZE);
+
         PULLUP PULLUP_sda (
             .O(sda)
         ), PULLUP_scl (
@@ -86,7 +88,7 @@ module tb_top;
         spi_flash_simulator
         #(
             .SYS_CLK_RATE(CLK_HZ),
-            .FLASH_ADR_BITS(8),
+            .FLASH_ADR_BITS(FLASH_CHIP_ADDR_LEN),
             .FLASH_INIT(`SPI_FLASH_SIM_DATA_FILE)
         ) spi_flash_0 (
             .sys_rst_n(rst),
