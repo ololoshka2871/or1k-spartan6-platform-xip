@@ -40,9 +40,9 @@ file(GLOB_RECURSE
 SET(SYSTEM_MEMORY_FILE_NAME_IN      ${CMAKE_CURRENT_SOURCE_DIR}/wb_dp_ram_primitive.v.in)
 SET(SYSTEM_MEMORY_BLOCK_TEMPLATE    ${CMAKE_CURRENT_SOURCE_DIR}/memory_block_template.v.in)
 
-SET(SYSTEM_MEMORY_FILE_NAME     wb_dp_ram_primitive.v)
-SET(SYSTEM_MEMORY_MODULE	${CMAKE_CURRENT_BINARY_DIR}/${SYSTEM_MEMORY_FILE_NAME})
-SET(SYSTEM_MEMORY_MODULE_SIM	${CMAKE_CURRENT_BINARY_DIR}/sim_${SYSTEM_MEMORY_FILE_NAME})
+SET(SYSTEM_MEMORY_FILE_NAME         wb_dp_ram_primitive.v)
+SET(SYSTEM_MEMORY_MODULE            ${CMAKE_CURRENT_BINARY_DIR}/${SYSTEM_MEMORY_FILE_NAME})
+SET(SYSTEM_MEMORY_MODULE_SIM        ${CMAKE_CURRENT_BINARY_DIR}/sim_${SYSTEM_MEMORY_FILE_NAME})
 
 ################################################################################
 
@@ -87,12 +87,9 @@ add_custom_command(
         ${PYTHON_EXECUTABLE} ${MK_SYSMEM_MODULE}
             --templatemodule ${SYSTEM_MEMORY_FILE_NAME_IN}
             --templateinstance ${SYSTEM_MEMORY_BLOCK_TEMPLATE}
-            --image ${BOOTLOADER_IMAGE}
             --blocks ${SYSTEM_FPGA_BMEMORY_USE}
             --blocksize ${MEMORY_UNIT_SIZE_BYTES} > ${SYSTEM_MEMORY_MODULE}
     DEPENDS
-        bootloader
-        ${BOOTLOADER_IMAGE}
         ${SYSTEM_MEMORY_FILE_NAME_IN}
         ${SYSTEM_MEMORY_BLOCK_TEMPLATE}
         ${COUNT_TEST_MEMORY_IMAGE} # need to success build
@@ -109,12 +106,9 @@ add_custom_command(
         ${PYTHON_EXECUTABLE} ${MK_SYSMEM_MODULE}
             --templatemodule ${SYSTEM_MEMORY_FILE_NAME_IN}
             --templateinstance ${SYSTEM_MEMORY_BLOCK_TEMPLATE}
-            --image ${BOOTLOADER_SIM_IMAGE}
             --blocks ${SYSTEM_FPGA_BMEMORY_USE}
             --blocksize ${MEMORY_UNIT_SIZE_BYTES} > ${SYSTEM_MEMORY_MODULE_SIM}
     DEPENDS
-        bootloader
-        ${BOOTLOADER_SIM_IMAGE}
         ${SYSTEM_MEMORY_FILE_NAME_IN}
         ${SYSTEM_MEMORY_BLOCK_TEMPLATE}
         ${MK_SYSMEM_MODULE}
@@ -135,7 +129,7 @@ add_custom_target(memory_sources
         ${SYSTEM_MEMORY_BLOCK_TEMPLATE}
     )
 
-set(MEMORY_HDL_V	${MEMORY_HDL_V}		PARENT_SCOPE)
-set(MEMORY_HDL_SIM_V	${MEMORY_HDL_SIM_V}	PARENT_SCOPE)
-set(TEST_IMAGE_FOR_DMA_MEMORY_NAME ${TEST_IMAGE_FOR_DMA_MEMORY_NAME} PARENT_SCOPE)
-set(COUNT_TEST_MEMORY_IMAGE ${COUNT_TEST_MEMORY_IMAGE} PARENT_SCOPE)
+set(MEMORY_HDL_V                    ${MEMORY_HDL_V}                     PARENT_SCOPE)
+set(MEMORY_HDL_SIM_V                ${MEMORY_HDL_SIM_V}                 PARENT_SCOPE)
+set(TEST_IMAGE_FOR_DMA_MEMORY_NAME  ${TEST_IMAGE_FOR_DMA_MEMORY_NAME}   PARENT_SCOPE)
+set(COUNT_TEST_MEMORY_IMAGE         ${COUNT_TEST_MEMORY_IMAGE}          PARENT_SCOPE)

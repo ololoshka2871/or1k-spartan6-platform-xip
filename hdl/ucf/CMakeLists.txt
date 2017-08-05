@@ -98,23 +98,6 @@ file(STRINGS ${ucp_filename} USER_CODE_FLASH_OFFSET
 string(REGEX REPLACE ".*USER_CODE_FLASH_OFFSET=(.*)" "\\1" USER_CODE_FLASH_OFFSET ${USER_CODE_FLASH_OFFSET})
 message(STATUS "User code will be at ${USER_CODE_FLASH_OFFSET} in flash")
 
-file(STRINGS ${ucp_filename} USE_PHISICAL_INPUTS
-    REGEX "USE_PHISICAL_INPUTS=.*"
-    )
-string(REGEX REPLACE ".*USE_PHISICAL_INPUTS=(.*)" "\\1" USE_PHISICAL_INPUTS ${USE_PHISICAL_INPUTS})
-if (USE_PHISICAL_INPUTS EQUAL 0 OR F_INPUTS_COUNT EQUAL 0)
-    set(F_INPUTS_COUNT  24)
-    set(USE_PHISICAL_INPUTS "// Macro USE_PHISICAL_INPUTS is not defined")
-    message(STATUS "Using test signals as inputs: 24")
-    execute_process(
-        COMMAND
-            sed -i "s|^\\(NET.*Fin\\[.*\\].*LOC = \\)|# \\1|" ${UCF_FILE_NAME}
-        )
-else()
-    set(USE_PHISICAL_INPUTS "`define     USE_PHISICAL_INPUTS")
-    message(STATUS "Using physical inputs: ${F_INPUTS_COUNT}")
-endif()
-
 file(STRINGS ${ucp_filename} MEMORY_UNIT_SIZE
     REGEX "MEMORY_UNIT_SIZE=.*"
     )
@@ -131,7 +114,6 @@ file(STRINGS ${ucp_filename} DEVICE_BOARD_NAME_CFG
     REGEX "BOARD_DEF=.*")
 string(REGEX REPLACE ".*BOARD_DEF=(.*)" "\\1" DEVICE_BOARD_NAME_CFG ${DEVICE_BOARD_NAME_CFG})
 message(STATUS "Board name: ${DEVICE_BOARD_NAME_CFG}")
-
 
 #-------------------------------------------------------------------------------
 

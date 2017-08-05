@@ -166,68 +166,23 @@ configure_file(${XST_IN_FILE_NAME} ${XST_FILE_NAME} @ONLY)
 
 configure_file(${UT_IN_FILE_NAME} ${UT_FILE_NAME} @ONLY)
 
-#-------------------------------------------------------------------------------
+#-------------------------------------tb----------------------------------------
 
-#-------------------------------------sym---------------------------------------
-add_subdirectory(testbench)
-
-set(prj_libs altor32 soc memory utils work mdio i2c myminimac wb_spi_flash)
-set(testlibs_list)
-foreach(l ${prj_libs})
-    list(APPEND testlibs_list -lib ${l})
-endforeach()
-
-set(test_include_path
+set(TB_INCLUDE_PATH
     -i ${CMAKE_CURRENT_BINARY_DIR}
     -i ${CMAKE_CURRENT_SOURCE_DIR}
     -i ${UTILS_INCLUDE_PATH}
     -i ${MYMINIMAC_INCLUDE_PATH}
     -i ${WB_SPI_FLASH_INCLUDE_PATH}
+    PARENT_SCOPE
     )
 
-build_prj(XILINX_VERILOG_glbl_PRJ   "verilog work	%f\n"	"${XILINX_VERILOG_glbl}")
-build_prj(MEMORY_HDL_SIM_PRJ	    "verilog memory	%f\n"	"${MEMORY_HDL_SIM_V}")
+set(XST_PRJ_TEXT            ${PRJ_TEXT}                 PARENT_SCOPE)
+set(MEMORY_HDL_SIM_PRJ      ${MEMORY_HDL_SIM_PRJ}       PARENT_SCOPE)
+set(HDL_SCRIPTS_DIR         ${SCRIPTS_DIR}              PARENT_SCOPE)
+set(MEMORY_HDL_SIM_V        ${MEMORY_HDL_SIM_V}         PARENT_SCOPE)
 
-foreach(testfile ${TESTBENCH_HDL_V})
-    string(REGEX REPLACE ".*/(.*)\\.v" "\\1" testname ${testfile})
-    message(STATUS "Creating testbench target for ${testname}")
-
-    set(test_prj_file	    ${TESTBENCH_DIR}/${testname}.prj)
-    set(test_executable	    ${TESTBENCH_DIR}/${testname}.exe)
-    set(test_top_lvl_module "tb.${testname}")
-
-    # create prj
-    build_prj(TB_PRJ	"verilog tb	%f\n"	"${testfile}")
-
-    file(WRITE ${test_prj_file}.tmp
-        ${PRJ_TEXT}
-        ${MEMORY_HDL_SIM_PRJ}
-	${TB_PRJ}
-	${XILINX_VERILOG_glbl_PRJ}
-	)
-
-    add_custom_target(${testname}.prj
-	COMMAND
-	    ${SCRIPTS_DIR}/checksrc.sh ${test_prj_file}.tmp ${test_prj_file}
-	DEPENDS
-            memory_refresh_sim spi_flash_test_image
-        COMMENT
-            "Refreshing ${testname}.prj"
-	)
-
-    make_Behavioral_testbench(
-	"${testlibs_list}"
-	${test_executable}
-	${test_prj_file}
-	${test_top_lvl_module}
-	${TESTBENCH_DIR}
-	"${test_include_path}"
-	)
-    add_dependencies(${PROJECT_NAME}_fuse.${test_top_lvl_module} ${testname}.prj)
-
-endforeach()
-
-#------------------------------------/sym---------------------------------------
+#-------------------------------------------------------------------------------
 
 math(EXPR _MEMORY_UNIT_SIZE "${MEMORY_UNIT_SIZE}")
 

@@ -87,7 +87,7 @@ set(SYSTEM_FRINTF_FLOAT_SUPPORT OFF
     CACHE BOOL  "Support for frinting float by ee_printf()")
 set(SYSTEM_PERFORM_COREMARK_AT_BOOT OFF
     CACHE BOOL  "Execture Coremark at boot")
-set(SYSTEM_INSTR_MEMORY_START   0x10000000
+set(SYSTEM_INSTR_MEMORY_START   0x0
     CACHE STRING  "Instruction memory start")
 
 #---------------------------/SYSTEM---------------------------------------------
@@ -180,31 +180,40 @@ set(SIM_TEST_CRC32          OFF
 
 #--------------------------------Calculable-------------------------------------
 
+math(EXPR INPUT_CLOCK_PERIOD_NS_F_m100
+    "1000000000 / (${DEVICE_REF_CLOCK_HZ} / 100)")
+floterise(INPUT_CLOCK_PERIOD_NS_F ${INPUT_CLOCK_PERIOD_NS_F_m100} 100)
+message(STATUS "Input clock = ${DEVICE_REF_CLOCK_HZ}Hz, period = ${INPUT_CLOCK_PERIOD_NS_F}ns")
+
 if (NOT CLOCK_USE_PLL)
     set(CPU_CLOCK_HZ        ${DEVICE_REF_CLOCK_HZ})
+    message(STATUS "CPU clock is ${CPU_CLOCK_HZ} Hz (No PLL)")
 else()
     math(EXPR CPU_CLOCK_HZ
         "${DEVICE_REF_CLOCK_HZ} * ${CLOCK_CPU_PLL_MULTIPLYER} / ${CLOCK_CPU_CLOCK_DEVIDER}")
+        message(STATUS "CPU clock is ${CPU_CLOCK_HZ} Hz (PLL: ${CLOCK_CPU_PLL_MULTIPLYER} / ${CLOCK_CPU_CLOCK_DEVIDER})")
 endif()
 
-math(EXPR INPUT_CLOCK_PERIOD_NS_F_m100
-    "1000000000 / (${DEVICE_REF_CLOCK_HZ} / 100)")
+set(SPI_FLASH_SIZE_TABLE    spi_flash_size.tbl)
 
-floterise(INPUT_CLOCK_PERIOD_NS_F ${INPUT_CLOCK_PERIOD_NS_F_m100} 100)
-message(STATUS
-    "Input clock = ${DEVICE_REF_CLOCK_HZ}Hz, period = ${INPUT_CLOCK_PERIOD_NS_F}ns")
-
-message(STATUS "CPU clock is ${CPU_CLOCK_HZ}")
+file(STRINGS ${SPI_FLASH_SIZE_TABLE} SPI_FLASH_SIZE_STRING
+    REGEX "${DEVICE_SPI_FLASH_CHIP}:.*"
+    )
+string(REGEX REPLACE ".*${DEVICE_SPI_FLASH_CHIP}:(.*)" "\\1" SPI_FLASH_SIZE_STRING ${SPI_FLASH_SIZE_STRING})
+math(EXPR SPI_FLASH_SIZE_BYTES "${SPI_FLASH_SIZE_STRING} / 8")
+math(EXPR SPI_FLASH_SIZE_KBYTES "${SPI_FLASH_SIZE_BYTES} / 1024")
+message(STATUS "SPI flash size: ${SPI_FLASH_SIZE_KBYTES} KB")
 
 #-------------------------------/Calculable-------------------------------------
-
-#---------------------------------bootloader------------------------------------
-add_subdirectory(bootloader)
-#--------------------------------/bootloader------------------------------------
 
 #------------------------------------HDL----------------------------------------
 include(Xilinx_build)
 add_subdirectory(hdl)
+
+#----------------------------------firmware-------------------------------------
+add_subdirectory(firmware)
+#---------------------------------/firmware-------------------------------------
+
 #------------------------------------prj----------------------------------------
 
 add_custom_command(OUTPUT ${PRJ_FILE_NAME} DEPENDS hdl)
@@ -257,6 +266,12 @@ if (NOT ${SYSTEM_PERFORM_COREMARK_AT_BOOT})
     add_custom_command(OUTPUT ${APPLICATION_BINARY} DEPENDS application)
 endif()
 #--------------------------------/application-----------------------------------
+
+#------------------------------behavioral tests---------------------------------
+
+add_subdirectory(hdltest)
+
+#-----------------------------/behavioral tests---------------------------------
 
 #-----------------------------post-syntesis sim---------------------------------
 

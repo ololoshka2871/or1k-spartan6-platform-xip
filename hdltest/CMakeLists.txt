@@ -42,12 +42,15 @@ file(GLOB_RECURSE
 set(SPI_FLASH_SIM_DATA_FILE ${CMAKE_CURRENT_BINARY_DIR}/img.txt)
 add_custom_command(
     OUTPUT  ${SPI_FLASH_SIM_DATA_FILE}
-    DEPENDS ${BOOTLOADER_IMAGE}
+    DEPENDS ${FIRMWARE_SIM_IMG_FILE_NAME_BIN}
     COMMAND
-        xxd -ps -c 1 ${BOOTLOADER_IMAGE} > ${SPI_FLASH_SIM_DATA_FILE}
+        xxd -ps -c 1 ${FIRMWARE_SIM_IMG_FILE_NAME_BIN} > ${SPI_FLASH_SIM_DATA_FILE}
+    COMMENT
+        "Making SPI Flash image"
     )
 add_custom_target(spi_flash_test_image DEPENDS ${SPI_FLASH_SIM_DATA_FILE})
 
+#--------------------------------------------------------------------------
 
 set(TB_CONFIG_FILE_IN   ${CMAKE_CURRENT_SOURCE_DIR}/bench_cfg.vh.in)
 set(TB_CONFIG_FILE      ${CMAKE_CURRENT_BINARY_DIR}/bench_cfg.vh)
@@ -60,6 +63,54 @@ add_custom_target(testbench_sources
         ${TESTBENCH_HDL_V} ${TB_CONFIG_FILE_IN}
     )
 
-set(TESTBENCH_HDL_V	${TESTBENCH_HDL_V}                      PARENT_SCOPE)
-set(TESTBENCH_DIR	${CMAKE_CURRENT_BINARY_DIR}             PARENT_SCOPE)
-set(TESTBENCH_TOP       ${CMAKE_CURRENT_SOURCE_DIR}/tb_top.v    PARENT_SCOPE)
+#-------------------------------------sym---------------------------------------
+
+set(prj_libs altor32 soc memory utils work mdio i2c myminimac wb_spi_flash)
+set(testlibs_list)
+foreach(l ${prj_libs})
+    list(APPEND testlibs_list -lib ${l})
+endforeach()
+
+build_prj(XILINX_VERILOG_glbl_PRJ   "verilog work	%f\n"	"${XILINX_VERILOG_glbl}")
+build_prj(MEMORY_HDL_SIM_PRJ	    "verilog memory	%f\n"	"${MEMORY_HDL_SIM_V}") #
+
+foreach(testfile ${TESTBENCH_HDL_V})
+    string(REGEX REPLACE ".*/(.*)\\.v" "\\1" testname ${testfile})
+    message(STATUS "Creating testbench target for ${testname}")
+
+    set(test_prj_file	    ${CMAKE_CURRENT_BINARY_DIR}/${testname}.prj)
+    set(test_executable	    ${CMAKE_CURRENT_BINARY_DIR}/${testname}.exe)
+    set(test_top_lvl_module "tb.${testname}")
+
+    # create prj
+    build_prj(TB_PRJ	"verilog tb	%f\n"	"${testfile}")
+
+    file(WRITE ${test_prj_file}.tmp
+        ${XST_PRJ_TEXT}
+        ${MEMORY_HDL_SIM_PRJ}
+        ${TB_PRJ}
+        ${XILINX_VERILOG_glbl_PRJ}
+        )
+
+    add_custom_target(${testname}.prj
+        COMMAND
+            ${HDL_SCRIPTS_DIR}/checksrc.sh ${test_prj_file}.tmp ${test_prj_file}
+        DEPENDS
+            memory_refresh_sim firmwarebinary spi_flash_test_image
+        COMMENT
+            "Refreshing ${testname}.prj"
+        )
+
+    make_Behavioral_testbench(
+        "${testlibs_list}"
+        ${test_executable}
+        ${test_prj_file}
+        ${test_top_lvl_module}
+        ${CMAKE_CURRENT_BINARY_DIR}
+        "${TB_INCLUDE_PATH}"
+        )
+    add_dependencies(${PROJECT_NAME}_fuse.${test_top_lvl_module} ${testname}.prj)
+
+endforeach()
+
+#------------------------------------/sym---------------------------------------

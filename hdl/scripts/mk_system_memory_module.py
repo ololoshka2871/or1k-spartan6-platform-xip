@@ -32,7 +32,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--templatemodule","-M",type=str, help="Шаблон verilog", required=True)
     parser.add_argument("--templateinstance","-I",type=str, help="Шаблон verilog", required=True)
-    parser.add_argument("--image","-i",type=str, help="Образ памяти .bin", required=True)
+    parser.add_argument("--image","-i",type=str, help="Образ памяти .bin")
     parser.add_argument("--blocks","-B",  type=int, help="Количество блоков памяти для генерации", required=True)
     parser.add_argument("--blocksize","-s",type=int, help="Размер каждого блока", required=True)
 
@@ -43,11 +43,14 @@ def main():
     template_instance = open(args.templateinstance).read()
 
     # read data
-    image = open(args.image, 'rb').read()
-    if len(image) < args.blocks * args.blocksize:
-        image = image + b''.join([b'\x00' for i in range(args.blocks * args.blocksize - len(image))])
+    if args.image:
+        image = open(args.image, 'rb').read()
+        if len(image) < args.blocks * args.blocksize:
+            image = image + b''.join([b'\x00' for i in range(args.blocks * args.blocksize - len(image))])
+        else:
+            image = image[:args.blocks * args.blocksize]
     else:
-        image = image[:args.blocks * args.blocksize]
+        image = b''.join([b'\x00' for i in range(args.blocks * args.blocksize)])
 
     #generate blocks
     blocks = []
