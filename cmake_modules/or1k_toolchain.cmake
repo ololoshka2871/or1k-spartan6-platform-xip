@@ -106,3 +106,12 @@ set(CMAKE_EXE_LINKER_FLAGS "\
 
 #-nodefaultlibs -nostdlib
 #-Wl,--whole-archive \
+
+
+function(ihex2bin IHEXFILE BINFILE)
+    add_custom_command(
+        OUTPUT ${BINFILE}
+        COMMAND ${CMAKE_OBJCOPY} -I ihex -O binary ${IHEXFILE} ${BINFILE}
+        DEPENDS ${IHEXFILE}
+    )
+endfunction(ihex2bin)
