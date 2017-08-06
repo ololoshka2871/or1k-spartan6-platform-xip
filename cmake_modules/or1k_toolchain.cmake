@@ -107,6 +107,21 @@ set(CMAKE_EXE_LINKER_FLAGS "\
 #-nodefaultlibs -nostdlib
 #-Wl,--whole-archive \
 
+function(elf2bin ELF_FILE BIN_FILE)
+    # make listing
+    add_custom_command(
+        OUTPUT  ${ELF_FILE}.lst
+        DEPENDS ${ELF_FILE}
+        COMMAND ${CMAKE_OBJDUMP} -h -d -S ${ELF_FILE} > ${ELF_FILE}.lst
+        )
+
+    # make binary
+    add_custom_command(
+        OUTPUT  ${BIN_FILE}
+        DEPENDS ${ELF_FILE} ${ELF_FILE}.lst
+        COMMAND ${CMAKE_OBJCOPY} -Obinary ${ELF_FILE} ${BIN_FILE}
+        )
+endfunction()
 
 function(ihex2bin IHEXFILE BINFILE)
     add_custom_command(

@@ -31,162 +31,62 @@
 
 cmake_minimum_required(VERSION 2.8.5)
 
-project(or1k-spartan6-platform_application ASM C)
+project(or1k-spartan6-platform_firmware ASM C)
+
+set(LD_SCRIPT_FILE_IN  "${CMAKE_CURRENT_SOURCE_DIR}/link.ld.in")
+set(LD_SCRIPT_FILE     "${CMAKE_CURRENT_BINARY_DIR}/link.ld")
+
+math(EXPR MAIN_MEMORY_SIZE_B "${SYSTEM_FPGA_BMEMORY_USE} * ${MEMORY_UNIT_SIZE} / 8")
+configure_file(${LD_SCRIPT_FILE_IN} ${LD_SCRIPT_FILE} @ONLY)
+
+set(CURRENT_MEMORY_SIZE_FILE    MEMSIZE)
+# Эта штука для ситуации когда изменено ${SYSTEM_FPGA_BMEMORY_USE}, нужно пересобрать бинарники
+add_custom_target(ldsctipt
+    DEPENDS ${LD_SCRIPT_FILE}
+    COMMAND
+        if [ `cat ${CURRENT_MEMORY_SIZE_FILE}` != ${SYSTEM_FPGA_BMEMORY_USE} ]\; then rm ${PROJECT_NAME}_sim.elf ${PROJECT_NAME}.elf\; fi\; echo ${SYSTEM_FPGA_BMEMORY_USE} > ${CURRENT_MEMORY_SIZE_FILE}
+    )
+
+
+
+set(FIRMWARE_IMG_FILE_NAME          firmware.res)
+set(FIRMWARE_SIM_IMG_FILE_NAME      firmware.sim)
+
+message(STATUS "System memory size: ${MAIN_MEMORY_SIZE_B} B")
 
 INCLUDE("or1k_toolchain")
 
 include_directories(${TOOLCHAIN_INCLUDE_PATH})
 
-add_subdirectory(scripts)
+add_subdirectory(boot)
 
-set(LD_SCRIPT_FILE_IN  "${CMAKE_CURRENT_SOURCE_DIR}/link.app.ld.in")
-set(LD_SCRIPT_FILE     "${CMAKE_CURRENT_BINARY_DIR}/link.app.ld")
+set_property(SOURCE ${BOOT_S} PROPERTY LANGUAGE C)
 
-function(calc_mac_memory_size OUT_VARIABLE SLOTS)
-    execute_process(COMMAND
-        ${PYTHON_EXECUTABLE} -c "import math; print(int(\
-            ${MEMORY_UNIT_SIZE} / 8 * int(math.ceil(${MTU}.0 * ${SLOTS} / (${MEMORY_UNIT_SIZE} / 8)))))"
-        OUTPUT_VARIABLE res)
-    string(REGEX REPLACE "\n" "" res ${res}) # trim
-    set(${OUT_VARIABLE} ${res} PARENT_SCOPE)
-endfunction()
-
-calc_mac_memory_size(MAC_TX_MEM_SIZE ${MYMINMAC_TX_SLOTS})
-calc_mac_memory_size(MAC_RX_MEM_SIZE ${MYMINMAC_RX_SLOTS})
-
-add_custom_target(mkldscript.files
-    SOURCES
-        ${LD_SCRIPT_FILE_IN}
+add_executable(${FIRMWARE_IMG_FILE_NAME}
+    ${BOOT_S}
     )
-
-add_custom_command(
-    OUTPUT
-        ${LD_SCRIPT_FILE}
-    COMMAND
-        ${MK_APP_LD_SCRIPT}
-            ${LD_SCRIPT_FILE_IN}
-            ${BOOTLOADER_IMAGE_ELF}
-            ${SYSTEM_HEADER_W1}
-            ${SYSTEM_HEADER_W2}
-            ${USER_CODE_FLASH_OFFSET}
-            ${MAC_TX_MEM_BASE}
-            ${MAC_RX_MEM_BASE}
-            ${MAC_RX_MEM_SIZE}
-            ${MAC_TX_MEM_SIZE}
-            ${TOOLCHAIN_PREFIX} > ${LD_SCRIPT_FILE}
-    DEPENDS
-        ${BOOTLOADER_IMAGE_ELF} ${LD_SCRIPT_FILE_IN}
-    COMMENT
-        "Generating build script for application"
+target_link_libraries(${FIRMWARE_IMG_FILE_NAME}
+    -Wl,--start-group -Wl,--end-group
     )
+add_dependencies(${FIRMWARE_IMG_FILE_NAME} ldsctipt)
 
-INCLUDE("or1k_toolchain")
-
-add_definitions(
-    -DF_CPU=${CPU_CLOCK_HZ}
-    -DBB_I2C_BAUD=${BAUD_I2C}
-    -DFREQMETERS_COUNT=${F_INPUTS_COUNT}
-    -DF_REF=${REFERENCE_CLOCK_HZ}UL
-    -DFREQMETERS_BASE=${FREQMETERS_BASE}
-    -DSYSTEM_FREF_COUNTER_LEN=${SYSTEM_FREF_COUNTER_LEN}
-    -DSYSTEM_FREQ_TYPE=${SYSTEM_FREQ_TYPE}
+add_executable(${FIRMWARE_SIM_IMG_FILE_NAME}
+    ${BOOT_S}
     )
-
-if(SERVER_UDP)
-    add_definitions(-DPROCESS_SERVER_UDP)
-endif()
-
-if(SERVER_WEBSOC)
-    add_definitions(-DPROCESS_SERVER_WEBSOC)
-endif()
-
-add_custom_target(mkldscript DEPENDS ${LD_SCRIPT_FILE})
-
-add_subdirectory(libbase)
-add_subdirectory(libhw)
-add_subdirectory(ibexukIP)
-
-include_directories(
-    ${CMAKE_CURRENT_BINARY_DIR}
-    libhw libbase
-    ${IBEXUK_IP_INCLUDE_DIRS}
+target_link_libraries(${FIRMWARE_SIM_IMG_FILE_NAME}
+    -Wl,--start-group -Wl,--end-group
     )
+add_dependencies(${FIRMWARE_SIM_IMG_FILE_NAME} ldsctipt)
 
-set(MAIN_SRC             ${CMAKE_CURRENT_SOURCE_DIR}/main.c)
-set(APPLICATION_ELF_NAME app.elf)
+set(FIRMWARE_IMG_FILE_NAME_BIN          ${CMAKE_CURRENT_BINARY_DIR}/${FIRMWARE_IMG_FILE_NAME}.bin)
+set(FIRMWARE_SIM_IMG_FILE_NAME_BIN      ${CMAKE_CURRENT_BINARY_DIR}/${FIRMWARE_SIM_IMG_FILE_NAME}.bin)
 
-get_target_property(hwlib_difenitions hw COMPILE_DEFINITIONS)
-get_target_property(ibexukIP_difenitions ibexukIP COMPILE_DEFINITIONS)
+elf2bin(${FIRMWARE_IMG_FILE_NAME}       ${FIRMWARE_IMG_FILE_NAME_BIN})
+elf2bin(${FIRMWARE_SIM_IMG_FILE_NAME}   ${FIRMWARE_SIM_IMG_FILE_NAME_BIN})
 
-add_executable(${APPLICATION_ELF_NAME}
-    ${APP_STARTUP_SRC}
-    ${MAIN_SRC}
-    )
-add_dependencies(${APPLICATION_ELF_NAME} gen_mac)
-target_link_libraries(${APPLICATION_ELF_NAME}
-    -Wl,--start-group hw ibexukIP base -Wl,--end-group)
+add_custom_target(application DEPENDS ${FIRMWARE_IMG_FILE_NAME_BIN} ${FIRMWARE_SIM_IMG_FILE_NAME_BIN})
 
-set(difenitions
-    ${hwlib_difenitions}
-    ${ibexukIP_difenitions}
-    )
+#----------------------------------------------------------------
 
-set_target_properties(${APPLICATION_ELF_NAME} PROPERTIES COMPILE_DEFINITIONS "${difenitions}")
-add_dependencies(${APPLICATION_ELF_NAME} mkldscript)
-
-function(elf2bin ELF_FILE BIN_FILE)
-    # make listing
-    add_custom_command(
-        OUTPUT  ${ELF_FILE}.lst
-        DEPENDS ${ELF_FILE}
-        COMMAND ${CMAKE_OBJDUMP} -h -d -S ${ELF_FILE} > ${ELF_FILE}.lst
-        )
-
-    # make binary
-    add_custom_command(
-        OUTPUT  ${BIN_FILE}
-        DEPENDS ${ELF_FILE} ${ELF_FILE}.lst
-        COMMAND ${CMAKE_OBJCOPY} -Obinary ${ELF_FILE} ${BIN_FILE}
-        )
-
-endfunction()
-
-set(application_BIN	    ${CMAKE_CURRENT_BINARY_DIR}/app.bin)
-
-elf2bin(${APPLICATION_ELF_NAME} ${application_BIN})
-
-set(SUMMARY_FILE_NAME       ${CMAKE_CURRENT_BINARY_DIR}/firmware_summary.txt)
-
-add_custom_target(firmware_summary
-    COMMAND ${SUMMARY_GENERATOR}
-            ${BOOTLOADER_IMAGE_ELF}
-            ${CMAKE_CURRENT_BINARY_DIR}/${APPLICATION_ELF_NAME}
-            ${TOOLCHAIN_PREFIX}
-            ${SUMMARY_FILE_NAME}
-            ${PYTHON_EXECUTABLE}
-    DEPENDS ${BOOTLOADER_IMAGE_ELF} ${APPLICATION_ELF_NAME}
-    )
-
-set(gen_callgraph_script        ${tools_DIR}/gen-callgraph.py)
-set(callgraph_outfile           ${CMAKE_CURRENT_BINARY_DIR}/${APPLICATION_ELF_NAME}-callgraph.svg)
-
-find_package(Doxygen)
-
-if (DOXYGEN_DOT_FOUND)
-add_custom_target(application_call_graph
-    COMMAND ${gen_callgraph_script}
-        --toolprefix ${TOOLCHAIN_PREFIX}
-        --call_cmd ${JUMP_INSTRUCTION}
-        ${APPLICATION_ELF_NAME}
-        | ${DOXYGEN_DOT_EXECUTABLE} -Tsvg -o${callgraph_outfile}
-    COMMAND
-        echo "Callgraph saved to ${callgraph_outfile}"
-    DEPENDS ${APPLICATION_ELF_NAME}
-    COMMENT
-        "Building application callgraph")
-endif(DOXYGEN_DOT_FOUND)
-
-add_custom_target(application DEPENDS ${application_BIN} firmware_summary)
-
-SET(APPLICATION_BINARY		${application_BIN}	    PARENT_SCOPE)
-set(PROTOBUF_PROTO_FILE         ${PROTOBUF_PROTO_FILE}      PARENT_SCOPE)
+set(FIRMWARE_IMG_FILE_NAME_BIN          ${FIRMWARE_IMG_FILE_NAME_BIN}       PARENT_SCOPE)
+set(FIRMWARE_SIM_IMG_FILE_NAME_BIN      ${FIRMWARE_SIM_IMG_FILE_NAME_BIN}   PARENT_SCOPE)

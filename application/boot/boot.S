@@ -58,7 +58,59 @@ BSS_CLEAR_loop:
 
     //
 xip_test:
-    l.j .
+    l.movhi r6, hi(0x12000000 + 0x400)
+    l.ori r6, r6, lo(0x12000000 + 0x400) # GPIO base
+
+    l.ori r5, r0, 1
+    l.addi r4, r6, 8
+    l.sw 0x0(r4), r5 # dir
+
+    l.ori r5, r0, 0
+blink_loop:
+    l.addi r4, r6, 4 # out reg
+    l.sw 0x0(r4), r5
+    l.xori r5, r5, 1
+    l.nop
+    l.nop
+    l.nop
+    l.nop
+    l.nop
+    l.nop
+    l.nop
+    l.nop
+    l.nop
+    l.nop
+    l.nop
+    l.nop
+    l.nop
+    l.nop
+    l.nop
+    l.nop
+    l.nop
+    l.nop
+    l.nop
+    l.nop
+    l.nop
+    l.nop
+    l.nop
+    l.nop
+    l.nop
+    l.nop
+    l.nop
+    l.nop
+    l.nop
+    l.nop
+    l.nop
+    l.nop
+    l.nop
+    l.nop
+    l.nop
+    l.nop
+    l.nop
+    l.nop
+    l.nop
+    l.nop
+    l.j blink_loop
     //
     /*
     # Jump to debug agent

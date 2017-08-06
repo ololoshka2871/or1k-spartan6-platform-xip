@@ -211,7 +211,10 @@ include(Xilinx_build)
 add_subdirectory(hdl)
 
 #----------------------------------firmware-------------------------------------
-add_subdirectory(firmware)
+
+add_subdirectory(application)
+add_custom_command(OUTPUT ${FIRMWARE_IMG_FILE_NAME_BIN} DEPENDS application)
+add_custom_command(OUTPUT ${FIRMWARE_SIM_IMG_FILE_NAME_BIN} DEPENDS application)
 #---------------------------------/firmware-------------------------------------
 
 #------------------------------------prj----------------------------------------
