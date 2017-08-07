@@ -50,48 +50,56 @@ module soc_pif8
     input [31:0]        periph0_data_i,
     output reg          periph0_we_o,
     output reg          periph0_stb_o,
+    input  wire         periph0_ack_i,
 
     output [7:0]        periph1_addr_o,
     output [31:0]       periph1_data_o,
     input [31:0]        periph1_data_i,
     output reg          periph1_we_o,
     output reg          periph1_stb_o,
+    input  wire         periph1_ack_i,
 
     output [7:0]        periph2_addr_o,
     output [31:0]       periph2_data_o,
     input [31:0]        periph2_data_i,
     output reg          periph2_we_o,
     output reg          periph2_stb_o,
+    input  wire         periph2_ack_i,
 
     output [7:0]        periph3_addr_o,
     output [31:0]       periph3_data_o,
     input [31:0]        periph3_data_i,
     output reg          periph3_we_o,
     output reg          periph3_stb_o,
+    input  wire         periph3_ack_i,
 
     output [7:0]        periph4_addr_o,
     output [31:0]       periph4_data_o,
     input [31:0]        periph4_data_i,
     output reg          periph4_we_o,
     output reg          periph4_stb_o,
+    input  wire         periph4_ack_i,
 
     output [7:0]        periph5_addr_o,
     output [31:0]       periph5_data_o,
     input [31:0]        periph5_data_i,
     output reg          periph5_we_o,
     output reg          periph5_stb_o,
+    input  wire         periph5_ack_i,
 
     output [7:0]        periph6_addr_o,
     output [31:0]       periph6_data_o,
     input [31:0]        periph6_data_i,
     output reg          periph6_we_o,
     output reg          periph6_stb_o,
+    input  wire         periph6_ack_i,
 
     output [7:0]        periph7_addr_o,
     output [31:0]       periph7_data_o,
     input [31:0]        periph7_data_i,
     output reg          periph7_we_o,
     output reg          periph7_stb_o,
+    input  wire         periph7_ack_i,
 
     // I/O bus
     input [31:0]        io_addr_i,
@@ -99,7 +107,7 @@ module soc_pif8
     output [31:0]       io_data_o,
     input               io_we_i,
     input               io_stb_i,
-    output reg          io_ack_o
+    output wire         io_ack_o
 );
 
 //-----------------------------------------------------------------
@@ -205,17 +213,17 @@ end
 //-----------------------------------------------------------------
 // Read Port
 //-----------------------------------------------------------------
-always @ (posedge clk_i or posedge rst_i)
-begin
-   if (rst_i == 1'b1)
-   begin
-       io_ack_o  <= 1'b0;
-   end
-   else
-   begin
-       io_ack_o  <= io_stb_i;
-   end
-end
+
+assign io_ack_o =
+    (base == 4'd 0) ? periph0_ack_i :
+    (base == 4'd 1) ? periph1_ack_i :
+    (base == 4'd 2) ? periph2_ack_i :
+    (base == 4'd 3) ? periph3_ack_i :
+    (base == 4'd 4) ? periph4_ack_i :
+    (base == 4'd 5) ? periph5_ack_i :
+    (base == 4'd 6) ? periph6_ack_i :
+    (base == 4'd 7) ? periph7_ack_i :
+    1'b0;
 
 wire[2:0] base = io_addr_i[11:8];
 

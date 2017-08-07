@@ -47,8 +47,8 @@ module xip_adapter
     output  reg                             mm_ack_o,
 
     // classic spi module interface
-    input   wire    [3:0]                   cs_adr_i,
-    input   wire                            cs_sel_i,
+    input   wire    [5:0]                   cs_adr_i,
+    input   wire                            cs_stb_i,
     input   wire                            cs_we_i,
     input   wire    [31:0]                  cs_dat_i,
     output  wire    [31:0]                  cs_dat_o,
@@ -67,6 +67,8 @@ reg     [1:0]       byte_n;
 reg                 spi_transaction;
 reg     [7:0]       data_buf[3:0];
 reg                 busy;
+
+reg                 cs_cycle;
 
 ///
 
@@ -116,11 +118,23 @@ always @(posedge clk_i or posedge rst_i) begin
     end
 end
 
+// sell-ack for classic spi module interface
+always @(posedge clk_i or posedge rst_i) begin
+    if (rst_i)
+        cs_cycle <= 1'b0;
+    else begin
+        if (cs_stb_i & ~cs_cycle)
+            cs_cycle <= 1'b1;
+        else if (cs_ack_o)
+            cs_cycle <= 1'b0;
+    end
+end
+
 ///
 
 spi_flash_sys_init
 #(
-    .SYS_CLK_RATE(MASTER_CLK_FREQ_HZ * 1.0),
+    .SYS_CLK_RATE(MASTER_CLK_FREQ_HZ / 400.0), // idle timeout -> min
     .FLASH_IDLE(1),
     .DECODE_BITS(1),
     .DEF_R_4(32'h0), // No initialisation
@@ -130,8 +144,8 @@ spi_flash_sys_init
     .sys_clk(clk_i),
     .sys_clk_en(1'b1),
 
-    .adr_i(cs_adr_i),
-    .sel_i(cs_sel_i),
+    .adr_i(cs_adr_i[5:2]),
+    .sel_i(cs_cycle),
     .we_i(cs_we_i),
     .dat_i(cs_dat_i),
     .dat_o(cs_dat_o),

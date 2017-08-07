@@ -184,11 +184,12 @@ wire [31:0]        intr_data_i;
 wire               intr_we;
 wire               intr_stb;
 
-wire [7:0]         spi_addr;
+wire [5:0]         spi_addr;
 wire [31:0]        spi_data_w;
 wire [31:0]        spi_data_r;
 wire               spi_we;
 wire               spi_stb;
+wire               spi_ack;
 
 wire [7:0]         mdio_addr;
 wire               mdio_stb;
@@ -237,6 +238,7 @@ u2_soc
     .periph0_data_i(uart0_data_r),
     .periph0_we_o(uart0_we),
     .periph0_stb_o(uart0_stb),
+    .periph0_ack_i(1'b1),
 
     // Timer = 0x12000100 - 0x120001FF
     .periph1_addr_o(timer_addr),
@@ -244,6 +246,7 @@ u2_soc
     .periph1_data_i(timer_data_i),
     .periph1_we_o(timer_we),
     .periph1_stb_o(timer_stb),
+    .periph1_ack_i(1'b1),
 
     // Interrupt Controller = 0x12000200 - 0x120002FF
     .periph2_addr_o(intr_addr),
@@ -251,6 +254,7 @@ u2_soc
     .periph2_data_i(intr_data_i),
     .periph2_we_o(intr_we),
     .periph2_stb_o(intr_stb),
+    .periph2_ack_i(1'b1),
 
     // SPI = 0x12000300 - 0x120003FF
     .periph3_addr_o(spi_addr),
@@ -258,6 +262,7 @@ u2_soc
     .periph3_data_i(spi_data_r),
     .periph3_we_o(spi_we),
     .periph3_stb_o(spi_stb),
+    .periph3_ack_i(spi_ack),
 
     // GPIO = 0x12000400 - 0x120004FF
     .periph4_addr_o(gpio_addr),
@@ -265,6 +270,7 @@ u2_soc
     .periph4_data_i(gpio_dat_r),
     .periph4_we_o(gpio_we),
     .periph4_stb_o(gpio_stb),
+    .periph4_ack_i(1'b1),
 
     // MDIO = 0x12000500 - 0x120005FF
     .periph5_addr_o(mdio_addr),
@@ -272,6 +278,7 @@ u2_soc
     .periph5_data_i(mdio_data_r),
     .periph5_we_o(mdio_we),
     .periph5_stb_o(mdio_stb),
+    .periph5_ack_i(1'b1),
 
     // i2c = 0x12000600 - 0x120006FF
     .periph6_addr_o(i2c_addr),
@@ -279,13 +286,15 @@ u2_soc
     .periph6_data_i(i2c_data_r),
     .periph6_we_o(i2c_we),
     .periph6_stb_o(i2c_stb),
+    .periph6_ack_i(1'b1),
 
     // CRC32 = 0x12000700 - 0x120007FF
     .periph7_addr_o(hw_math_addr),
     .periph7_data_o(hw_math_data_w),
     .periph7_data_i(hw_math_data_r),
     .periph7_we_o(hw_math_we),
-    .periph7_stb_o(hw_math_stb)
+    .periph7_stb_o(hw_math_stb),
+    .periph7_ack_i(1'b1)
 );
 
 //-----------------------------------------------------------------
@@ -406,12 +415,12 @@ xip_adapter
     .mm_cyc_i(mm_cyc_i),
     .mm_ack_o(mm_ack_o),
 
-    .cs_adr_i(spi_addr[3:0]),
-    .cs_sel_i(spi_stb),
+    .cs_adr_i(spi_addr),
+    .cs_stb_i(spi_stb),
     .cs_we_i(spi_we),
     .cs_dat_i(spi_data_w),
     .cs_dat_o(spi_data_r),
-    .cs_ack_o(/*open*/),
+    .cs_ack_o(spi_ack),
 
     .spi_mosi(mosi_o),
     .spi_miso(miso_i),

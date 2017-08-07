@@ -42,7 +42,7 @@ file(GLOB_RECURSE
 set(SPI_FLASH_SIM_DATA_FILE ${CMAKE_CURRENT_BINARY_DIR}/img.txt)
 add_custom_command(
     OUTPUT  ${SPI_FLASH_SIM_DATA_FILE}
-    DEPENDS firmwarebinary ${FIRMWARE_SIM_IMG_FILE_NAME_BIN}
+    DEPENDS application ${FIRMWARE_SIM_IMG_FILE_NAME_BIN}
     COMMAND
         xxd -ps -c 1 ${FIRMWARE_SIM_IMG_FILE_NAME_BIN} > ${SPI_FLASH_SIM_DATA_FILE}
     COMMENT
@@ -96,7 +96,7 @@ foreach(testfile ${TESTBENCH_HDL_V})
         COMMAND
             ${HDL_SCRIPTS_DIR}/checksrc.sh ${test_prj_file}.tmp ${test_prj_file}
         DEPENDS
-            memory_refresh_sim firmwarebinary spi_flash_test_image
+            memory_refresh_sim application spi_flash_test_image
         COMMENT
             "Refreshing ${testname}.prj"
         )

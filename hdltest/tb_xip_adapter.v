@@ -66,7 +66,7 @@ xip_adapter
     .mm_ack_o(ack),
 
     .cs_adr_i(4'h0),
-    .cs_sel_i(1'b0),
+    .cs_stb_i(1'b0),
     .cs_we_i(1'b0),
     .cs_dat_i(32'h0),
     .cs_dat_o(/* open */),

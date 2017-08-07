@@ -40,35 +40,36 @@ _start:
     l.movhi r4,hi(_sp);
     l.ori r1,r4,lo(_sp);
 
-BSS_CLEAR:
-    # R4 = _bss_start
-    l.movhi r4,hi(_bss_start);
-    l.ori r4,r4,lo(_bss_start);
-    
-    # R5 = _bss_end
-    l.movhi r5,hi(_bss_end);
-    l.ori r5,r5,lo(_bss_end);
-    
-BSS_CLEAR_loop:
-    l.sw 0x0(r4),r0         # Write 0x00 to mem[r4]
-    l.sfleu r4,r5           # SR[F] = (r4 < r5)
-    l.addi r4, r4, 4        # r4 += 4
-    l.bf  BSS_CLEAR_loop    # If SR[F] == 0, jump to BSS_CLEAR
-    l.nop
-
     //
 xip_test:
+    //
+spi_read:
+    l.movhi r7, hi(0x12000000 + 0x300)
+    l.ori r7, r7, lo(0x12000000 + 0x300) // SPI base
+
+    l.ori   r4, r0, 1 // r4 <= ~1
+    l.xori  r4, r4, -1
+    l.sw    0(r7), r4
+
+    l.ori   r4, r0, 0x03 // read command for flash
+    l.sw    4(r7), r4
+
+    l.movhi r4,hi(__data_load__) // flash address
+    l.ori   r4,r4,lo(__data_load__)
+    l.sw    8(r7), r4
+
+    l.lwz   r4, 0x18(r7) // read flash
+
+blinker:
     l.movhi r6, hi(0x12000000 + 0x400)
     l.ori r6, r6, lo(0x12000000 + 0x400) # GPIO base
 
     l.ori r5, r0, 1
-    l.addi r4, r6, 8
-    l.sw 0x0(r4), r5 # dir
+    l.sw 0x8(r6), r5 # dir
 
     l.ori r5, r0, 0
 blink_loop:
-    l.addi r4, r6, 4 # out reg
-    l.sw 0x0(r4), r5
+    l.sw 0x4(r6), r5
     l.xori r5, r5, 1
     l.nop
     l.nop
@@ -111,6 +112,24 @@ blink_loop:
     l.nop
     l.nop
     l.j blink_loop
+
+BSS_CLEAR:
+    # R4 = _bss_start
+    l.movhi r4,hi(_bss_start);
+    l.ori r4,r4,lo(_bss_start);
+    
+    # R5 = _bss_end
+    l.movhi r5,hi(_bss_end);
+    l.ori r5,r5,lo(_bss_end);
+    
+BSS_CLEAR_loop:
+    l.sw 0x0(r4),r0         # Write 0x00 to mem[r4]
+    l.sfleu r4,r5           # SR[F] = (r4 < r5)
+    l.addi r4, r4, 4        # r4 += 4
+    l.bf  BSS_CLEAR_loop    # If SR[F] == 0, jump to BSS_CLEAR
+    l.nop
+
+
     //
     /*
     # Jump to debug agent
