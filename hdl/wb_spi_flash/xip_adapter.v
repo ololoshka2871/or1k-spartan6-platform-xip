@@ -41,8 +41,10 @@ module xip_adapter
     input   wire                            clk_i,
 
     // memory mapped flash interface
-    input   wire    [31:0]                  mm_addr_i,
+    input   wire    [23:0]                  mm_addr_i,
     output  wire    [31:0]                  mm_dat_o,
+    output  wire    [31:0]                  mm_dat_i,
+    input   wire                            mm_we,
     input   wire                            mm_cyc_i,
     output  reg                             mm_ack_o,
 
@@ -61,6 +63,8 @@ module xip_adapter
     output  wire                            spi_cs_o
 );
 
+// WARNING!!! Write not working!
+
 ///
 
 reg     [1:0]       byte_n;
@@ -74,7 +78,7 @@ reg                 cs_cycle;
 
 parameter FLASH_OFFSET  = RAM_PROGRAMM_MEMORY_START - SPI_FLASH_PROGRAMM_START;
 
-wire    [31:0]      flash_addr         = { mm_addr_i[31:2] - FLASH_OFFSET[31:2], byte_n };
+wire    [31:0]      flash_addr         = { 8'h0, { mm_addr_i[23:2] - FLASH_OFFSET[23:2], byte_n }};
 
 wire                spi_transaction_ack;
 wire    [7:0]       spi_data;
