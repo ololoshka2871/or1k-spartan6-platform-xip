@@ -88,6 +88,11 @@ module top
 // Params
 //-----------------------------------------------------------------
 
+parameter           LEVEL_0_ADDRESS_WIDTH = 24;
+
+parameter FPGA_RAM_SIZE_BYTES   = `NUM_OF_SYS_MEM_UNITS * `MEMORY_UNIT_SIZE / 8;
+parameter RAM_ADDRESS_LEN	= $clog2(FPGA_RAM_SIZE_BYTES);
+
 `ifdef CLOCK_USE_PLL
 parameter CLK_KHZ = `DEVICE_REF_CLOCK_HZ * `CLOCK_CPU_PLL_MULTIPLYER / `CLOCK_CPU_CLOCK_DEVIDER / 1000;
 `else
@@ -101,62 +106,88 @@ parameter CLK_KHZ = `DEVICE_REF_CLOCK_HZ / 1000;
 //-----------------------------------------------------------------
 // Registers / Wires
 //-----------------------------------------------------------------
+
+// imem root bus
+wire[31:0]                              imem_address;
+wire[31:0]                              imem_data;
+wire                                    imem_cyc;
+wire                                    imem_stb;
+wire                                    imem_ack;
+
+
+// dmem root bus
+wire[31:0]                              dmem_addr;
+wire[31:0]                              dmem_data_w;
+wire[31:0]                              dmem_data_r;
+wire[3:0]                               dmem_sel;
+wire                                    dmem_we;
+wire                                    dmem_stb;
+wire                                    dmem_cyc;
+wire                                    dmem_ack;
+wire                                    dmem_stall;
+
+// ram
+wire[LEVEL_0_ADDRESS_WIDTH-1:0]         ram_addr;
+wire[31:0]                              ram_data_w;
+wire[31:0]                              ram_data_r;
+wire                                    ram_we;
+wire[3:0]                               ram_sel;
+wire                                    ram_stb;
+wire                                    ram_ack;
+wire                                    ram_cyc;
+wire                                    ram_stall;
+
+// flash mapped bus
+wire[LEVEL_0_ADDRESS_WIDTH-1:0]         rom_addr;
+wire[31:0]                              rom_data_w;
+wire[31:0]                              rom_data_r;
+wire                                    rom_we;
+wire                                    rom_stb;
+wire                                    rom_ack;
+
+// soc
+wire[LEVEL_0_ADDRESS_WIDTH-1:0]         soc_addr;
+wire[31:0]                              soc_data_w;
+wire[31:0]                              soc_data_r;
+wire                                    soc_we;
+wire                                    soc_stb;
+wire                                    soc_cyc;
+wire                                    soc_ack;
+
+// foc fast
+wire[LEVEL_0_ADDRESS_WIDTH-1:0]         sf_addr;
+wire[31:0]                              sf_data_w;
+wire[31:0]                              sf_data_r;
+wire[3:0]                               sf_sel;
+wire                                    sf_we;
+wire                                    sf_stb;
+wire                                    sf_cyc;
+wire                                    sf_ack;
+wire                                    sf_stall;
+
+//-----------------------------------------------------------------
+
 // Reset
-reg                 reset           = 1'b1;
+reg                                     reset           = 1'b1;
 
-wire [31:0]         soc_addr;
-wire [31:0]         soc_data_w;
-wire [31:0]         soc_data_r;
-wire                soc_we;
-wire                soc_stb;
-wire                soc_ack;
-wire		    soc_cyc;
+wire                                    clk;
+wire                                    clk_ref;
 
-wire[31:0]          dmem_addr;
-wire[31:0]          dmem_data_w;
-wire[31:0]          dmem_data_r;
-wire[3:0]           dmem_sel;
-wire                dmem_we;
-wire                dmem_stb;
-wire                dmem_cyc;
-wire                dmem_ack;
-wire                dmem_stall;
+wire                                    clk_io;
+wire                                    spi_cs_o;
 
-wire[31:0]          imem_addr;
-wire[31:0]          imem_data;
-wire[3:0]           imem_sel;
-wire                imem_stb;
-wire                imem_cyc;
-wire                imem_ack;
+wire[2:0]                               ext_intr;
 
-wire[31:0]          sf_addr;
-wire[31:0]          sf_data_r;
-wire[31:0]          sf_data_w;
-wire[3:0]           sf_sel;
-wire[2:0]           sf_cti;
-wire                sf_we;
-wire                sf_stb;
-wire                sf_cyc;
-wire                sf_ack;
-wire                sf_stall;
-
-wire                clk;
-wire                clk_ref;
-
-wire                clk_io;
-wire                spi_cs_o;
-
-wire[2:0]           ext_intr;
-
-wire                rmii_clk;
+wire                                    rmii_clk;
 
 //-----------------------------------------------------------------
 // Instantiation
 //-----------------------------------------------------------------
-parameter FPGA_RAM_SIZE_BYTES   = `NUM_OF_SYS_MEM_UNITS * `MEMORY_UNIT_SIZE / 8;
-parameter RAM_ADDRESS_LEN	= $clog2(FPGA_RAM_SIZE_BYTES);
 
-//RAM
+
+//-----------------------------------------------------------------
+// RAM
+//-----------------------------------------------------------------
 wb_dp_ram_primitive
 #(
     //.LOAD_IMAGE(1),
@@ -166,20 +197,9 @@ wb_dp_ram_primitive
 sys_ram
 (
     .rst_i(reset),
-    /*
-    .a_clk(clk),
-    .a_adr_i(imem_addr[RAM_ADDRESS_LEN-1:0]),
-    .a_dat_i(32'b0),
-    .a_dat_o(imem_data),
-    .a_we_i(1'b0),
-    .a_sel_i(imem_sel),
-    .a_stb_i(imem_stb),
-    .a_ack_o(imem_ack),
-    .a_cyc_i(imem_cyc),
-    .a_stall_o(),
-    */
+
     .a_clk(1'b0),
-    .a_adr_i(32'b0),
+    .a_adr_i(16'b0),
     .a_dat_i(32'b0),
     .a_dat_o(/*open*/),
     .a_we_i(1'b0),
@@ -188,133 +208,133 @@ sys_ram
     .a_ack_o(/*open*/),
     .a_cyc_i(1'b0),
     .a_stall_o(/*open*/),
-    
+
     .b_clk(clk),
-    .b_adr_i(dmem_addr[RAM_ADDRESS_LEN-1:0]),
-    .b_dat_i(dmem_data_w),
-    .b_dat_o(dmem_data_r),
-    .b_we_i(dmem_we),
-    .b_sel_i(dmem_sel),
-    .b_stb_i(dmem_stb),
-    .b_ack_o(dmem_ack),
-    .b_cyc_i(dmem_cyc),
-    .b_stall_o(dmem_stall)
+    .b_adr_i(ram_addr[RAM_ADDRESS_LEN-1:0]),
+    .b_dat_i(ram_data_w),
+    .b_dat_o(ram_data_r),
+    .b_we_i(ram_we),
+    .b_sel_i(ram_sel),
+    .b_stb_i(ram_stb),
+    .b_ack_o(ram_ack),
+    .b_cyc_i(ram_cyc),
+    .b_stall_o(ram_stall)
 );
 
-// CPU
-cpu_if
+//-----------------------------------------------------------------
+// CPU core
+//-----------------------------------------------------------------
+cpu
 #(
-    .CLK_KHZ(CLK_KHZ),
     .BOOT_VECTOR(`BOOT_VECTOR),
     .ISR_VECTOR(`BOOT_VECTOR),
+    .REGISTER_FILE_TYPE("XILINX"),
     .ENABLE_ICACHE("ENABLED"),
-    .ENABLE_DCACHE("DISABLED"),
-    .REGISTER_FILE_TYPE("XILINX")
+    .ENABLE_DCACHE("DISABLED")
 )
-u_cpu
+u1_cpu
 (
-    // General - clocking & reset
     .clk_i(clk),
     .rst_i(reset),
-    .fault_o(),
-    .break_o(),
-    .nmi_i(1'b0),
+
     .intr_i(soc_irq),
+    .nmi_i(1'b0),
 
-    // Instruction Memory 0 (0x10000000 - 0x10FFFFFF)
-    .imem0_addr_o(imem_addr),
-    .imem0_data_i(imem_data),
-    .imem0_sel_o(imem_sel),
-    .imem0_cti_o(/* open */),
-    .imem0_cyc_o(imem_cyc),
-    .imem0_stb_o(imem_stb),
-    .imem0_stall_i(1'b0),
-    .imem0_ack_i(imem_ack),
-    
-    // Data Memory 0 (0x10000000 - 0x10FFFFFF)
-    .dmem0_addr_o(dmem_addr),
-    .dmem0_data_o(dmem_data_w),
-    .dmem0_data_i(dmem_data_r),
-    .dmem0_sel_o(dmem_sel),
-    .dmem0_cti_o(/* open */),
-    .dmem0_cyc_o(dmem_cyc),
-    .dmem0_we_o(dmem_we),
-    .dmem0_stb_o(dmem_stb),
-    .dmem0_stall_i(dmem_stall),
-    .dmem0_ack_i(dmem_ack),
+    // Status
+    .fault_o(/* open */),
+    .break_o(/* open */),
 
-    // Data Memory 1 (0x11000000 - 0x11FFFFFF)
-    .dmem1_addr_o(sf_addr),
-    .dmem1_data_o(sf_data_w),
-    .dmem1_data_i(sf_data_r),
-    .dmem1_sel_o(sf_sel),
-    .dmem1_we_o(sf_we),
-    .dmem1_stb_o(sf_stb),
-    .dmem1_cyc_o(sf_cyc),
-    .dmem1_cti_o(sf_cti),
-    .dmem1_stall_i(sf_stall),
-    .dmem1_ack_i(sf_ack),
-	  
-    // Data Memory 2 (0x12000000 - 0x12FFFFFF)
-    .dmem2_addr_o(soc_addr),
-    .dmem2_data_o(soc_data_w),
-    .dmem2_data_i(soc_data_r),
-    .dmem2_sel_o(/*open*/),
-    .dmem2_we_o(soc_we),
-    .dmem2_stb_o(soc_stb),
-    .dmem2_cyc_o(soc_cyc),
-    .dmem2_cti_o(/*open*/),
-    .dmem2_stall_i(1'b0),
-    .dmem2_ack_i(soc_ack)
+    // Instruction memory
+    .imem_addr_o(imem_address),
+    .imem_dat_i(imem_data),
+    .imem_cti_o(/* open */),
+    .imem_cyc_o(imem_cyc),
+    .imem_stb_o(imem_stb),
+    .imem_stall_i(1'b0),
+    .imem_ack_i(imem_ack),
+
+    // Data memory
+    .dmem_addr_o(dmem_addr),
+    .dmem_dat_o(dmem_data_w),
+    .dmem_dat_i(dmem_data_r),
+    .dmem_sel_o(dmem_sel),
+    .dmem_cti_o(/* open */),
+    .dmem_cyc_o(dmem_cyc),
+    .dmem_we_o(dmem_we),
+    .dmem_stb_o(dmem_stb),
+    .dmem_stall_i(dmem_stall),
+    .dmem_ack_i(dmem_ack)
 );
 
-// clocking provider
-clock_provider clk_prov
-(
-    .clk_i(clk_i),
-    .rmii_clk_to_PHY_i(phy_rmii_clk),
 
-    .sys_clk_o(clk),
-    .rmii_logick_clk_o(rmii_clk)
+//-----------------------------------------------------------------
+// Top levet bus MUX
+//-----------------------------------------------------------------
+wb_mux4
+#(
+    .OUT_ADDR_WIDTH(LEVEL_0_ADDRESS_WIDTH)
+) mux0 (
+    // Input
+    .mem_addr_i(dmem_addr[LEVEL_0_ADDRESS_WIDTH + 2 - 1:0]),
+    .mem_data_i(dmem_data_w),
+    .mem_data_o(dmem_data_r),
+    .mem_sel_i(dmem_sel),
+    .mem_we_i(dmem_we),
+    .mem_stb_i(dmem_stb),
+    .mem_cyc_i(dmem_cyc),
+    .mem_ack_o(dmem_ack),
+    .mem_stall_o(dmem_stall),
+
+    // memory-mapped SPI flash  (0x00000000)
+    .out0_addr_o(rom_addr),
+    .out0_data_o(rom_data_w),
+    .out0_data_i(rom_data_r),
+    .out0_sel_o(/* open */),
+    .out0_we_o(rom_we),
+    .out0_stb_o(rom_stb),
+    .out0_cyc_o(/* open */),
+    .out0_ack_i(rom_ack),
+    .out0_stall_i(1'b0),
+
+    // RAM                      (0x01000000)
+    .out1_addr_o(ram_addr),
+    .out1_data_o(ram_data_w),
+    .out1_data_i(ram_data_r),
+    .out1_sel_o(ram_sel),
+    .out1_we_o(ram_we),
+    .out1_stb_o(ram_stb),
+    .out1_cyc_o(ram_cyc),
+    .out1_ack_i(ram_ack),
+    .out1_stall_i(ram_stall),
+
+    // SOC                      (0x02000000)
+    .out2_addr_o(soc_addr),
+    .out2_data_o(soc_data_w),
+    .out2_data_i(soc_data_r),
+    .out2_sel_o(/* open */),
+    .out2_we_o(soc_we),
+    .out2_stb_o(soc_stb),
+    .out2_cyc_o(soc_cyc),
+    .out2_ack_i(soc_ack),
+    .out2_stall_i(1'b0),
+
+    // SOC fast                 (0x03000000)
+    .out3_addr_o(sf_addr),
+    .out3_data_o(sf_data_r),
+    .out3_data_i(sf_data_w),
+    .out3_sel_o(sf_sel),
+    .out3_we_o(sf_we),
+    .out3_stb_o(sf_stb),
+    .out3_cyc_o(sf_cyc),
+    .out3_ack_i(sf_ack),
+    .out3_stall_i(sf_stall)
 );
 
-// Fast perepherial
-soc_fast
-sf (
-    .clk_i(clk),
-    .rst_i(reset),
-
-    .cyc_i(sf_cyc),
-    .stb_i(sf_stb),
-    .adr_i(sf_addr),
-    .we_i(sf_we),
-    .dat_i(sf_data_w),
-    .dat_o(sf_data_r),
-    .ack_o(sf_ack),
-    .stall_o(sf_stall),
-    .sel_i(sf_sel),
-    .cti_i(sf_cti),
-
-`ifdef ETHERNET_ENABLED
-    .phy_rmii_clk(rmii_clk),
-    .phy_rmii_crs(phy_rmii_crs),
-    .phy_rmii_tx_data(phy_rmii_tx_data),
-    .phy_rmii_rx_data(phy_rmii_rx_data),
-    .phy_tx_en(phy_tx_en),
-`endif
-
-    .interrupts_o(ext_intr)
-);
-
+//-----------------------------------------------------------------
 // CPU SOC
+//-----------------------------------------------------------------
 soc
 #(
-    .INSTR_MEMORY_BASE(`BOOT_VECTOR),
-`ifdef XILINX_ISIM
-    .SPI_FLASH_PROGRAMM_START(0),
-`else
-    .SPI_FLASH_PROGRAMM_START(`SPI_FLASH_PROGRAMM_START),
-`endif
     .CLK_KHZ(CLK_KHZ),
     .ENABLE_SYSTICK_TIMER("ENABLED"),
     .ENABLE_HIGHRES_TIMER("ENABLED"),
@@ -322,39 +342,25 @@ soc
     .BAUD_MDIO(`BAUD_MDIO),
     .BAUD_I2C(`BAUD_I2C),
     .EXTERNAL_INTERRUPTS(3)
-)
-u_soc
-(
+) u_soc (
     // General - clocking & reset
     .clk_i(clk),
     .rst_i(reset),
     .ext_intr_i(ext_intr),
     .intr_o(soc_irq),
 
-    .uart0_tx_o(tx0),
-    .uart0_rx_i(rx0),
-
-    // memory-mapped spi flash
-    .mm_addr_i(imem_addr),
-    .mm_dat_o(imem_data),
-    .mm_cyc_i(imem_cyc),
-    .mm_ack_o(imem_ack),
-
     // Memory Port
-    .io_addr_i(soc_addr),    
+    .io_addr_i({{(32-LEVEL_0_ADDRESS_WIDTH){1'b0}}, soc_addr}),
     .io_data_i(soc_data_w),
-    .io_data_o(soc_data_r),    
+    .io_data_o(soc_data_r),
     .io_we_i(soc_we),
     .io_stb_i(soc_stb),
     .io_ack_o(soc_ack),
     .io_cyc_i(soc_cyc),
 
-    .devided_clocks(/* open */),
+    .uart0_tx_o(tx0),
+    .uart0_rx_i(rx0)
 
-    .sck_o(sck_o),
-    .mosi_o(mosi_o),
-    .miso_i(miso_i),
-    .spi_cs_o(spi_cs_o)
 `ifdef ETHERNET_ENABLED
     ,
     .mdclk_o(phy_mdclk),
@@ -371,6 +377,48 @@ u_soc
     ,
     .gpio(gpio)
 `endif
+);
+
+//-----------------------------------------------------------------
+// Fast perepherial
+//-----------------------------------------------------------------
+soc_fast
+sf (
+    .clk_i(clk),
+    .rst_i(reset),
+
+    .cyc_i(sf_cyc),
+    .stb_i(sf_stb),
+    .adr_i({{(32-LEVEL_0_ADDRESS_WIDTH){1'b0}}, sf_addr}),
+    .we_i(sf_we),
+    .dat_i(sf_data_w),
+    .dat_o(sf_data_r),
+    .ack_o(sf_ack),
+    .stall_o(sf_stall),
+    .sel_i(sf_sel),
+    .cti_i(3'h0),
+
+`ifdef ETHERNET_ENABLED
+    .phy_rmii_clk(rmii_clk),
+    .phy_rmii_crs(phy_rmii_crs),
+    .phy_rmii_tx_data(phy_rmii_tx_data),
+    .phy_rmii_rx_data(phy_rmii_rx_data),
+    .phy_tx_en(phy_tx_en),
+`endif
+
+    .interrupts_o(ext_intr)
+);
+
+//-----------------------------------------------------------------
+// clocking provider
+//-----------------------------------------------------------------
+clock_provider clk_prov
+(
+    .clk_i(clk_i),
+    .rmii_clk_to_PHY_i(phy_rmii_clk),
+
+    .sys_clk_o(clk),
+    .rmii_logick_clk_o(rmii_clk)
 );
 
 //-----------------------------------------------------------------

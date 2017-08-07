@@ -53,12 +53,6 @@ module soc
     uart0_tx_o,
     uart0_rx_i,
 
-    // memory-mapped spi flash interface
-    mm_addr_i,
-    mm_dat_o,
-    mm_cyc_i,
-    mm_ack_o,
-
     // Memory interface
     io_addr_i,
     io_data_i,
@@ -67,14 +61,6 @@ module soc
     io_stb_i,    
     io_ack_o,
     io_cyc_i,
-
-    devided_clocks,
-
-    // SPI
-    sck_o,
-    mosi_o,
-    miso_i,
-    spi_cs_o
 
     // MDIO
 `ifdef ETHERNET_ENABLED
@@ -99,8 +85,6 @@ module soc
 //-----------------------------------------------------------------
 // Params
 //-----------------------------------------------------------------
-parameter           INSTR_MEMORY_BASE    = 32'h0;
-parameter           SPI_FLASH_PROGRAMM_START    = 32'h0;
 parameter  [31:0]   CLK_KHZ              = 12288;
 parameter  [31:0]   EXTERNAL_INTERRUPTS  = 1;
 parameter           BAUD_UART0           = 115200;
@@ -119,11 +103,6 @@ input [(EXTERNAL_INTERRUPTS - 1):0]  ext_intr_i /*verilator public*/;
 output                  intr_o /*verilator public*/;
 output                  uart0_tx_o /*verilator public*/;
 input                   uart0_rx_i /*verilator public*/;
-// memory-mapped spi flash interface
-input   [31:0]          mm_addr_i /*verilator public*/;
-output  [31:0]          mm_dat_o /*verilator public*/;
-input                   mm_cyc_i /*verilator public*/;
-output                  mm_ack_o /*verilator public*/;
 // Memory Port
 input [31:0]            io_addr_i /*verilator public*/;
 input [31:0]            io_data_i /*verilator public*/;
@@ -132,13 +111,6 @@ input                   io_we_i /*verilator public*/;
 input                   io_stb_i /*verilator public*/;
 output                  io_ack_o /*verilator public*/;
 input                   io_cyc_i /*verilator public*/;
-// devided_clocks
-input  [15:0]           devided_clocks /*verilator public*/;
-// SPI
-output                  sck_o /*verilator public*/;
-output                  mosi_o /*verilator public*/;
-input                   miso_i /*verilator public*/;
-output             		spi_cs_o /*verilator public*/;
 //MDIO
 `ifdef ETHERNET_ENABLED
 inout                   mdio /*verilator public*/;
@@ -171,31 +143,24 @@ wire               hw_math_stb;
 wire [7:0]         hw_math_addr;
 
 wire [7:0]         timer_addr;
-wire [31:0]        timer_data_o;
-wire [31:0]        timer_data_i;
+wire [31:0]        timer_data_w;
+wire [31:0]        timer_data_r;
 wire               timer_we;
 wire               timer_stb;
 wire               timer_intr_systick;
 wire               timer_intr_hires;
 
 wire [7:0]         intr_addr;
-wire [31:0]        intr_data_o;
-wire [31:0]        intr_data_i;
+wire [31:0]        intr_data_w;
+wire [31:0]        intr_data_r;
 wire               intr_we;
 wire               intr_stb;
-
-wire [5:0]         spi_addr;
-wire [31:0]        spi_data_w;
-wire [31:0]        spi_data_r;
-wire               spi_we;
-wire               spi_stb;
-wire               spi_ack;
 
 wire [7:0]         mdio_addr;
 wire               mdio_stb;
 wire               mdio_we;
 wire [31:0]        mdio_data_w;
-wire [31:0]        mdio_data_r;
+wire [7:0]         mdio_data_r;
 wire               mdio_intr;
 
 wire [7:0]         i2c_addr;
@@ -204,6 +169,8 @@ wire               i2c_we;
 wire [31:0]        i2c_data_w;
 wire [31:0]        i2c_data_r;
 wire               i2c_intr;
+wire               i2c_cyc;
+wire               i2c_ack;
 
 wire [7:0]         gpio_addr;
 wire               gpio_stb;
@@ -215,86 +182,108 @@ wire               gpio_intr;
 //-----------------------------------------------------------------
 // Peripheral Interconnect
 //-----------------------------------------------------------------
-soc_pif8
-u2_soc
-(
-    // General - Clocking & Reset
-    .clk_i(clk_i),
-    .rst_i(rst_i),
+wb_mux8
+#(
+    .OUT_ADDR_WIDTH(8)
+) mux_soc (
+    // I/O bus
+    .mem_addr_i(io_addr_i[10:0]),
+    .mem_data_i(io_data_i),
+    .mem_data_o(io_data_o),
+    .mem_sel_i(4'b1111),
+    .mem_we_i(io_we_i),
+    .mem_stb_i(io_stb_i),
+    .mem_cyc_i(1'b0),
+    .mem_ack_o(io_ack_o),
+    .mem_stall_o(/* open */),
 
-    // I/O bus (from mem_mux)
-    // 0x12000000 - 0x12FFFFFF
-    .io_addr_i(io_addr_i),
-    .io_data_i(io_data_i),
-    .io_data_o(io_data_o),
-    .io_we_i(io_we_i),
-    .io_stb_i(io_stb_i),
-    .io_ack_o(io_ack_o),
+    // UART0                        0x000
+    .out0_addr_o(uart0_addr),
+    .out0_data_o(uart0_data_w),
+    .out0_data_i(uart0_data_r),
+    .out0_sel_o(/* open */),
+    .out0_we_o(uart0_we),
+    .out0_stb_o(uart0_stb),
+    .out0_cyc_o(/* open */),
+    .out0_ack_i(1'b1),
+    .out0_stall_i(1'b0),
 
-    // Peripherals
-    // UART0 = 0x12000000 - 0x120000FF
-    .periph0_addr_o(uart0_addr),
-    .periph0_data_o(uart0_data_w),
-    .periph0_data_i(uart0_data_r),
-    .periph0_we_o(uart0_we),
-    .periph0_stb_o(uart0_stb),
-    .periph0_ack_i(1'b1),
+    // Interrupt Controller         0x100
+    .out1_addr_o(timer_addr),
+    .out1_data_o(timer_data_w),
+    .out1_data_i(timer_data_r),
+    .out1_sel_o(/* open */),
+    .out1_we_o(timer_we),
+    .out1_stb_o(timer_stb),
+    .out1_cyc_o(/* open */),
+    .out1_ack_i(1'b1),
+    .out1_stall_i(1'b0),
 
-    // Timer = 0x12000100 - 0x120001FF
-    .periph1_addr_o(timer_addr),
-    .periph1_data_o(timer_data_o),
-    .periph1_data_i(timer_data_i),
-    .periph1_we_o(timer_we),
-    .periph1_stb_o(timer_stb),
-    .periph1_ack_i(1'b1),
+    // Interrupt Controller         0x200
+    .out2_addr_o(intr_addr),
+    .out2_data_o(intr_data_w),
+    .out2_data_i(intr_data_r),
+    .out2_sel_o(/* open */),
+    .out2_we_o(intr_we),
+    .out2_stb_o(intr_stb),
+    .out2_cyc_o(/* open */),
+    .out2_ack_i(1'b1),
+    .out2_stall_i(1'b0),
 
-    // Interrupt Controller = 0x12000200 - 0x120002FF
-    .periph2_addr_o(intr_addr),
-    .periph2_data_o(intr_data_o),
-    .periph2_data_i(intr_data_i),
-    .periph2_we_o(intr_we),
-    .periph2_stb_o(intr_stb),
-    .periph2_ack_i(1'b1),
+    // GPIO                         0x300
+    .out3_addr_o(gpio_addr),
+    .out3_data_o(gpio_dat_w),
+    .out3_data_i(gpio_dat_r),
+    .out3_sel_o(/* open */),
+    .out3_we_o(gpio_we),
+    .out3_stb_o(gpio_stb),
+    .out3_cyc_o(/* open */),
+    .out3_ack_i(1'b1),
+    .out3_stall_i(1'b0),
 
-    // SPI = 0x12000300 - 0x120003FF
-    .periph3_addr_o(spi_addr),
-    .periph3_data_o(spi_data_w),
-    .periph3_data_i(spi_data_r),
-    .periph3_we_o(spi_we),
-    .periph3_stb_o(spi_stb),
-    .periph3_ack_i(spi_ack),
+    // MDIO                         0x400
+    .out4_addr_o(mdio_addr),
+    .out4_data_o(mdio_data_w),
+    .out4_data_i({{24{1'b0}}, mdio_data_r}),
+    .out4_sel_o(/* open */),
+    .out4_we_o(mdio_we),
+    .out4_stb_o(mdio_stb),
+    .out4_cyc_o(/* open */),
+    .out4_ack_i(1'b1),
+    .out4_stall_i(1'b0),
 
-    // GPIO = 0x12000400 - 0x120004FF
-    .periph4_addr_o(gpio_addr),
-    .periph4_data_o(gpio_dat_w),
-    .periph4_data_i(gpio_dat_r),
-    .periph4_we_o(gpio_we),
-    .periph4_stb_o(gpio_stb),
-    .periph4_ack_i(1'b1),
+    // I2C                          0x500
+    .out5_addr_o(i2c_addr),
+    .out5_data_o(i2c_data_w),
+    .out5_data_i(i2c_data_r),
+    .out5_sel_o(/* open */),
+    .out5_we_o(i2c_we),
+    .out5_stb_o(i2c_stb),
+    .out5_cyc_o(i2c_cyc),
+    .out5_ack_i(i2c_ack),
+    .out5_stall_i(1'b0),
 
-    // MDIO = 0x12000500 - 0x120005FF
-    .periph5_addr_o(mdio_addr),
-    .periph5_data_o(mdio_data_w),
-    .periph5_data_i(mdio_data_r),
-    .periph5_we_o(mdio_we),
-    .periph5_stb_o(mdio_stb),
-    .periph5_ack_i(1'b1),
+    // MATH                         0x600
+    .out6_addr_o(hw_math_addr),
+    .out6_data_o(hw_math_data_w),
+    .out6_data_i(hw_math_data_r),
+    .out6_sel_o(/* open */),
+    .out6_we_o(hw_math_we),
+    .out6_stb_o(hw_math_stb),
+    .out6_cyc_o(/* open */),
+    .out6_ack_i(1'b1),
+    .out6_stall_i(1'b0),
 
-    // i2c = 0x12000600 - 0x120006FF
-    .periph6_addr_o(i2c_addr),
-    .periph6_data_o(i2c_data_w),
-    .periph6_data_i(i2c_data_r),
-    .periph6_we_o(i2c_we),
-    .periph6_stb_o(i2c_stb),
-    .periph6_ack_i(1'b1),
-
-    // CRC32 = 0x12000700 - 0x120007FF
-    .periph7_addr_o(hw_math_addr),
-    .periph7_data_o(hw_math_data_w),
-    .periph7_data_i(hw_math_data_r),
-    .periph7_we_o(hw_math_we),
-    .periph7_stb_o(hw_math_stb),
-    .periph7_ack_i(1'b1)
+    // Reserved                     0x700
+    .out7_addr_o(/* open */),
+    .out7_data_o(/* open */),
+    .out7_data_i(32'h0),
+    .out7_sel_o(/* open */),
+    .out7_we_o(/* open */),
+    .out7_stb_o(/* open */),
+    .out7_cyc_o(/* open */),
+    .out7_ack_i(1'b1),
+    .out7_stall_i(1'b0)
 );
 
 //-----------------------------------------------------------------
@@ -315,8 +304,8 @@ u_uart0
     .data_i(uart0_data_w),
     .we_i(uart0_we),
     .stb_i(uart0_stb),
-    .rx_i(uart0_rx_i),
-    .tx_o(uart0_tx_o)
+    .rx_i(uart0_rx_w),
+    .tx_o(uart0_tx_r)
 );
 `else
 assign uart0_intr = 1'b0;
@@ -356,8 +345,8 @@ u_timer
     .intr_systick_o(timer_intr_systick),
     .intr_hires_o(timer_intr_hires),
     .addr_i(timer_addr),
-    .data_o(timer_data_i),
-    .data_i(timer_data_o),
+    .data_o(timer_data_w),
+    .data_i(timer_data_r),
     .we_i(timer_we),
     .stb_i(timer_stb)
 );
@@ -392,41 +381,15 @@ u_intr
     .intr_ext_i(ext_intr_i),
 
     .addr_i(intr_addr),
-    .data_o(intr_data_i),
-    .data_i(intr_data_o),
+    .data_o(intr_data_w),
+    .data_i(intr_data_r),
     .we_i(intr_we),
     .stb_i(intr_stb)
 );
 
 //-----------------------------------------------------------------
-// SPI Controller
+// Reserved
 //-----------------------------------------------------------------
-xip_adapter
-#(
-    .MASTER_CLK_FREQ_HZ(CLK_KHZ * 1000),
-    .RAM_PROGRAMM_MEMORY_START(INSTR_MEMORY_BASE),
-    .SPI_FLASH_PROGRAMM_START(SPI_FLASH_PROGRAMM_START)
-) spi_controller (
-    .rst_i(rst_i),
-    .clk_i(clk_i),
-
-    .mm_addr_i(mm_addr_i),
-    .mm_dat_o(mm_dat_o),
-    .mm_cyc_i(mm_cyc_i),
-    .mm_ack_o(mm_ack_o),
-
-    .cs_adr_i(spi_addr),
-    .cs_stb_i(spi_stb),
-    .cs_we_i(spi_we),
-    .cs_dat_i(spi_data_w),
-    .cs_dat_o(spi_data_r),
-    .cs_ack_o(spi_ack),
-
-    .spi_mosi(mosi_o),
-    .spi_miso(miso_i),
-    .spi_sck_o(sck_o),
-    .spi_cs_o(spi_cs_o)
-);
 
 //-----------------------------------------------------------------
 // MDIO Controller
@@ -441,9 +404,9 @@ wb_mdio
     .rst_i(rst_i),
     .cyc_i(io_cyc_i),
     .stb_i(mdio_stb),
-    .adr_i(mdio_addr[2:0]),
+    .adr_i(mdio_addr[3:2]),
     .we_i(mdio_we),
-    .dat_i(mdio_data_w),
+    .dat_i(mdio_data_w[7:0]),
     .dat_o(mdio_data_r),
 
     .inta_o(mdio_intr),
@@ -473,9 +436,9 @@ iicmb_m_wb
     .clk_i(clk_i),
     .rst_i(rst_i),
 
-    .cyc_i(io_cyc_i),
+    .cyc_i(i2c_cyc),
     .stb_i(i2c_stb),
-    .ack_o(/* open */),
+    .ack_o(i2c_ack),
     .adr_i(i2c_addr[3:2]),
     .we_i(i2c_we),
     .dat_i(i2c_data_w[7:0]),
