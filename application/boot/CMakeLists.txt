@@ -35,6 +35,7 @@ cmake_minimum_required(VERSION 2.8.5)
 #SET(GDB_NORMAL_SRC	    gdb_main.c)
 #SET(GDB_NOTRAP_SRC	    gdb_main_notrap.c)
 #SET(GDB_NOTRAP_SIM_SRC	    gdb_main_sim_notrap.c)
+SET(STARTUP_SRC_C           ${CMAKE_CURRENT_SOURCE_DIR}/startup.c)
 SET(STARTUP_SRC             ${CMAKE_CURRENT_SOURCE_DIR}/boot.S)
 
 
@@ -54,6 +55,8 @@ INCLUDE_DIRECTORIES(.)
 #    list(APPEND difenitions SYSTEM_PERFORM_COREMARK_AT_BOOT)
 #endif()
 
+add_library(startup STATIC ${STARTUP_SRC_C})
+
 #add_library(gdb_stub STATIC ${GDB_HW_SRC} ${GDB_NORMAL_SRC})
 #add_library(gdb_stub_notrap STATIC ${GDB_HW_SRC} ${GDB_NOTRAP_SRC})
 #add_library(gdb_stub_sim_notrap STATIC ${GDB_HW_SRC} ${GDB_NOTRAP_SIM_SRC})
@@ -62,7 +65,7 @@ INCLUDE_DIRECTORIES(.)
 #set_target_properties(gdb_stub_notrap       PROPERTIES COMPILE_DEFINITIONS "${difenitions}")
 #set_target_properties(gdb_stub_sim_notrap   PROPERTIES COMPILE_DEFINITIONS "${difenitions}")
 
-add_custom_target(boot_src  SOURCES ${STARTUP_SRC})
+add_custom_target(boot_src  SOURCES ${STARTUP_SRC} ${STARTUP_SRC_C})
 
 set(BOOT_S           ${STARTUP_SRC}                     PARENT_SCOPE)
 #set(GDB_STUB_DIR    ${CMAKE_CURRENT_SOURCE_DIR}         PARENT_SCOPE)

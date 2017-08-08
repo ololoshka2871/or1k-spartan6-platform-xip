@@ -1077,6 +1077,8 @@ begin
               -- Acknowledge the memory mapped cycle
               if (spi_ack='1') then
                 fl_ack <= '1';
+                -- Shilo_XyZ_
+                reg_ispi_adr <= reg_ispi_adr + 1; -- increment internal address
               end if;
               -- Handle de-assertion of current cycle
               if (fl_sel_i='0') then
@@ -1104,11 +1106,20 @@ begin
             end if;
             -- If another similar cycle is requested, continue
             if (fl_sel_i='1' and fl_we_i=reg_we) then
-              idle_timer <= to_unsigned(FLASH_IDLE,idle_timer'length);
-              sr <= fl_dat_i;
-              clk_count <= to_unsigned(CLK_COUNT_1BYTE,clk_count'length);
-              spi_state <= SHIFT_BYTE;
-              fl_state <= R_DAT;
+              if (reg_ispi_adr /= fl_adr_i) then
+                  -- Not the following addressб restart
+                  clk_count <= to_unsigned(CLK_COUNT_DESEL,clk_count'length);
+                  idle_timer <= to_unsigned(FLASH_IDLE,idle_timer'length);
+                  sr <= to_unsigned(SPI_CMD_RDSR,sr'length);
+                  spi_state <= IDLE;
+                  fl_state <= IDLE;
+              else
+                  idle_timer <= to_unsigned(FLASH_IDLE,idle_timer'length);
+                  sr <= fl_dat_i;
+                  clk_count <= to_unsigned(CLK_COUNT_1BYTE,clk_count'length);
+                  spi_state <= SHIFT_BYTE;
+                  fl_state <= R_DAT;
+              end if;
             end if;
             -- If a different cycle is requested, terminate the SPI command
             if (fl_sel_i='1' and fl_we_i/=reg_we) then

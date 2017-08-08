@@ -2,8 +2,8 @@
 MEMORY 
 { 
   flash (rx) : ORIGIN = @SYSTEM_INSTR_MEMORY_START@, LENGTH = @SPI_FLASH_SIZE_BYTES@ - @USER_CODE_FLASH_OFFSET@
-  sram  (rw) : ORIGIN = 0x10000000, LENGTH = @MAIN_MEMORY_SIZE_B@ - 8
-  spcalc(rw) : ORIGIN = 0x10000000 + @MAIN_MEMORY_SIZE_B@ - 8, LENGTH = 8
+  sram  (rw) : ORIGIN = 0x01000000, LENGTH = @MAIN_MEMORY_SIZE_B@ - 8
+  spcalc(rw) : ORIGIN = 0x01000000 + @MAIN_MEMORY_SIZE_B@ - 8, LENGTH = 8
 }
 
 ENTRY(__start)
@@ -20,18 +20,17 @@ SECTIONS
     {
         . = ALIGN(4);
         *(.text .text.*)		 /* remaining code */
-        . = ALIGN(4);
-        PROVIDE(_text_end = .);
-    } > flash
-
-    .data (NOLOAD):
-    {
-        PROVIDE(__data_load__ = LOADADDR (.data));
-        PROVIDE(_data_start = .);
         *(.rodata)			 /* read-only data (constants) */
         *(.rodata*)
         *(.rdata*)
-        . = ALIGN (4);
+        PROVIDE(_text_end = .);
+        . = ALIGN(4);
+        PROVIDE(_data_load = .);
+    } > flash
+
+    .data :
+    {
+        PROVIDE(_data_start = .);
         *(.got.plt) *(.got)
         *(.shdata)
         *(.data .data.* .gnu.linkonce.d.*)

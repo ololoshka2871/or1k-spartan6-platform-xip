@@ -44,10 +44,8 @@ set(CURRENT_MEMORY_SIZE_FILE    MEMSIZE)
 add_custom_target(ldsctipt
     DEPENDS ${LD_SCRIPT_FILE}
     COMMAND
-        if [ `cat ${CURRENT_MEMORY_SIZE_FILE}` != ${SYSTEM_FPGA_BMEMORY_USE} ]\; then rm ${PROJECT_NAME}_sim.elf ${PROJECT_NAME}.elf\; fi\; echo ${SYSTEM_FPGA_BMEMORY_USE} > ${CURRENT_MEMORY_SIZE_FILE}
+        if [ `cat ${CURRENT_MEMORY_SIZE_FILE}` != ${SYSTEM_FPGA_BMEMORY_USE} ]\; then rm ${FIRMWARE_IMG_FILE_NAME} ${FIRMWARE_SIM_IMG_FILE_NAME}\; fi\; echo ${SYSTEM_FPGA_BMEMORY_USE} > ${CURRENT_MEMORY_SIZE_FILE}
     )
-
-
 
 set(FIRMWARE_IMG_FILE_NAME          firmware.res)
 set(FIRMWARE_SIM_IMG_FILE_NAME      firmware.sim)
@@ -66,16 +64,18 @@ add_executable(${FIRMWARE_IMG_FILE_NAME}
     ${BOOT_S}
     )
 target_link_libraries(${FIRMWARE_IMG_FILE_NAME}
-    -Wl,--start-group -Wl,--end-group
+    -Wl,--start-group startup -Wl,--end-group
     )
+set_target_properties(${FIRMWARE_IMG_FILE_NAME} PROPERTIES LINK_DEPENDS ${LD_SCRIPT_FILE})
 add_dependencies(${FIRMWARE_IMG_FILE_NAME} ldsctipt)
 
 add_executable(${FIRMWARE_SIM_IMG_FILE_NAME}
     ${BOOT_S}
     )
 target_link_libraries(${FIRMWARE_SIM_IMG_FILE_NAME}
-    -Wl,--start-group -Wl,--end-group
+    -Wl,--start-group startup -Wl,--end-group
     )
+set_target_properties(${FIRMWARE_SIM_IMG_FILE_NAME} PROPERTIES LINK_DEPENDS ${LD_SCRIPT_FILE})
 add_dependencies(${FIRMWARE_SIM_IMG_FILE_NAME} ldsctipt)
 
 set(FIRMWARE_IMG_FILE_NAME_BIN          ${CMAKE_CURRENT_BINARY_DIR}/${FIRMWARE_IMG_FILE_NAME}.bin)
@@ -84,7 +84,11 @@ set(FIRMWARE_SIM_IMG_FILE_NAME_BIN      ${CMAKE_CURRENT_BINARY_DIR}/${FIRMWARE_S
 elf2bin(${FIRMWARE_IMG_FILE_NAME}       ${FIRMWARE_IMG_FILE_NAME_BIN})
 elf2bin(${FIRMWARE_SIM_IMG_FILE_NAME}   ${FIRMWARE_SIM_IMG_FILE_NAME_BIN})
 
-add_custom_target(application DEPENDS ${FIRMWARE_IMG_FILE_NAME_BIN} ${FIRMWARE_SIM_IMG_FILE_NAME_BIN})
+add_custom_target(application
+    DEPENDS
+        ${FIRMWARE_IMG_FILE_NAME} ${FIRMWARE_SIM_IMG_FILE_NAME}
+        ${FIRMWARE_IMG_FILE_NAME_BIN} ${FIRMWARE_SIM_IMG_FILE_NAME_BIN}
+    )
 
 #----------------------------------------------------------------
 

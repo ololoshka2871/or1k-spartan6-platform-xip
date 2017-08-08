@@ -166,13 +166,6 @@ wire                                    sf_cyc;
 wire                                    sf_ack;
 wire                                    sf_stall;
 
-wire [LEVEL_0_ADDRESS_WIDTH-1:0]        xip_addr;
-wire [31:0]                             xip_data_r;
-wire [31:0]                             xip_data_w;
-wire                                    xip_we;
-wire                                    xip_cyc;
-wire                                    xip_ack;
-
 //-----------------------------------------------------------------
 
 // Reset
@@ -339,69 +332,36 @@ wb_mux4
 );
 
 //-----------------------------------------------------------------
-// ROM arbiter
-//-----------------------------------------------------------------
-wb_arbiter_2m1s
-#(
-    .WB_DAT_WIDTH(32),
-    .WB_ADR_WIDTH(LEVEL_0_ADDRESS_WIDTH)
-) spi_arbiter (
-    // Master 1 - CPU IBUS
-    .wbm0_adr_i(imem_address),
-    .wbm0_dat_i(32'h0),
-    .wbm0_sel_i(4'b1111),
-    .wbm0_we_i(1'b0),
-    .wbm0_cyc_i(imem_cyc),
-    .wbm0_stb_i(imem_stb),
-    .wbm0_dat_o(imem_data),
-    .wbm0_ack_o(imem_ack),
-
-    // Master 2 - memory-mapped ROM interface
-    .wbm1_adr_i(rom_addr),
-    .wbm1_dat_i(rom_data_w),
-    .wbm1_sel_i(4'b1111),
-    .wbm1_we_i(rom_we),
-    .wbm1_cyc_i(rom_cyc),
-    .wbm1_stb_i(rom_stb),
-    .wbm1_dat_o(rom_data_r),
-    .wbm1_ack_o(rom_ack),
-
-    // Slave - XIP
-    .wbs0_adr_o(xip_addr),
-    .wbs0_dat_o(xip_data_w),
-    .wbs0_sel_o(/* open */),
-    .wbs0_we_o(xip_we),
-    .wbs0_cyc_o(xip_cyc),
-    .wbs0_stb_o(/* open */),
-    .wbs0_dat_i(xip_data_r),
-    .wbs0_ack_i(xip_ack)
-);
-
-//-----------------------------------------------------------------
 // SPI Flash memory mapper
 //-----------------------------------------------------------------
 xip_adapter
 #(
-    .MASTER_CLK_FREQ_HZ(),
-    .RAM_PROGRAMM_MEMORY_START(),
-    .SPI_FLASH_PROGRAMM_START()
+    .MASTER_CLK_FREQ_HZ(CLK_KHZ * 1000),
+    .RAM_PROGRAMM_MEMORY_START(`BOOT_VECTOR),
+`ifdef XILINX_ISIM
+    .SPI_FLASH_PROGRAMM_START(0)
+`else
+    .SPI_FLASH_PROGRAMM_START(`SPI_FLASH_PROGRAMM_START)
+`endif
 ) flash_mapper (
     .rst_i(reset),
     .clk_i(clk),
 
-    .mm_addr_i(xip_addr),
-    .mm_dat_o(xip_data_r),
-    .mm_dat_i(xip_data_w),
-    .mm_we(xip_we),
-    .mm_cyc_i(xip_cyc),
-    .mm_ack_o(xip_ack),
+    .mm0_addr_i(imem_address),
+    .mm0_dat_o(imem_data),
+    .mm0_dat_i(32'h0),
+    .mm0_we(1'b0),
+    .mm0_cyc_i(imem_cyc),
+    .mm0_stb_i(imem_stb),
+    .mm0_ack_o(imem_ack),
 
-    .cs_adr_i(6'h0),
-    .cs_stb_i(1'b0),
-    .cs_we_i(1'b0),
-    .cs_dat_i(32'b0),
-    .cs_dat_o(/* open */),
-    .cs_ack_o(/* open */),
+    .mm1_addr_i(rom_addr),
+    .mm1_dat_o(rom_data_r),
+    .mm1_dat_i(rom_data_w),
+    .mm1_we(rom_we),
+    .mm1_cyc_i(rom_cyc),
+    .mm1_stb_i(rom_stb),
+    .mm1_ack_o(rom_ack),
 
     .spi_mosi(mosi_o),
     .spi_miso(miso_i),

@@ -66,7 +66,7 @@ module wb_arbiter_2m1s
     input  [WB_DAT_WIDTH-1:0]   wbs0_dat_i,
     input                       wbs0_ack_i
 );
-   
+
    // Master select
    wire [1:0] 		     master_sel;
    // priority to wbm0
@@ -87,7 +87,7 @@ module wb_arbiter_2m1s
 
    assign wbm0_dat_o = wbs0_dat_i;
    assign wbm0_ack_o = wbs0_ack_i & master_sel[0];
-   
+
    assign wbm1_dat_o = wbs0_dat_i;
    assign wbm1_ack_o = wbs0_ack_i & master_sel[1];
 
