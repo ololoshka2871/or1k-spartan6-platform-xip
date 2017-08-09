@@ -208,7 +208,7 @@ wb_mux8
     .out0_ack_i(1'b1),
     .out0_stall_i(1'b0),
 
-    // Interrupt Controller         0x100
+    // timer                        0x100
     .out1_addr_o(timer_addr),
     .out1_data_o(timer_data_w),
     .out1_data_i(timer_data_r),
@@ -304,8 +304,8 @@ u_uart0
     .data_i(uart0_data_w),
     .we_i(uart0_we),
     .stb_i(uart0_stb),
-    .rx_i(uart0_rx_w),
-    .tx_o(uart0_tx_r)
+    .rx_i(uart0_rx_i),
+    .tx_o(uart0_tx_o)
 );
 `else
 assign uart0_intr = 1'b0;
@@ -345,8 +345,8 @@ u_timer
     .intr_systick_o(timer_intr_systick),
     .intr_hires_o(timer_intr_hires),
     .addr_i(timer_addr),
-    .data_o(timer_data_w),
-    .data_i(timer_data_r),
+    .data_o(timer_data_r),
+    .data_i(timer_data_w),
     .we_i(timer_we),
     .stb_i(timer_stb)
 );
@@ -372,17 +372,17 @@ u_intr
     .intr0_i(uart0_intr),
     .intr1_i(timer_intr_systick),
     .intr2_i(timer_intr_hires),
-    .intr3_i(1'b0),
-    .intr4_i(1'b0),
-    .intr5_i(mdio_intr),
-    .intr6_i(i2c_intr),
+    .intr3_i(gpio_intr),
+    .intr4_i(mdio_intr),
+    .intr5_i(i2c_intr),
+    .intr6_i(1'b0),
     .intr7_i(1'b0),
 
     .intr_ext_i(ext_intr_i),
 
     .addr_i(intr_addr),
-    .data_o(intr_data_w),
-    .data_i(intr_data_r),
+    .data_o(intr_data_r),
+    .data_i(intr_data_w),
     .we_i(intr_we),
     .stb_i(intr_stb)
 );

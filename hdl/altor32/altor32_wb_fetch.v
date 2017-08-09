@@ -125,8 +125,9 @@ begin
                 end
                 else
                 begin                    
-                    wbm_addr_o      <= address_i;
-                    resp_word_q     <= address_i[FETCH_BYTES_W-1:2];
+                    wbm_addr_o      <= {address_i[31:FETCH_BYTES_W], {FETCH_BYTES_W{1'b0}}}; //address_i;
+                    fetch_word_q    <= {FETCH_WORDS_W{1'b0}};
+                    resp_word_q     <= {FETCH_WORDS_W{1'b0}}; //address_i[FETCH_BYTES_W-1:2];
 
                     // Single fetch
                     wbm_cti_o       <= WB_CTI_FINAL;                    

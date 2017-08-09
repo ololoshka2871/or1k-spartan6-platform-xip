@@ -75,12 +75,6 @@ set(DEVICE_SPI_FLASH_CHIP       "W25Q32BV"
 
 set(SYSTEM_FPGA_BMEMORY_USE     28
     CACHE STRING "Number of RAMB16BWERs to use as main memory")
-set(SYSTEM_HEADER_W1            0x03030303
-    CACHE STRING "Application syncronisation word 1")
-set(SYSTEM_HEADER_W2            0x1f1f1f1f
-    CACHE STRING "Application syncronisation word 2")
-set(SYSTEM_TRAP_EARLY           OFF
-    CACHE BOOL   "Start debuger in bootloader")
 set(SYSTEM_HEAP_SIZE            512
     CACHE STRING "System memory heap size")
 set(SYSTEM_FRINTF_FLOAT_SUPPORT OFF
@@ -158,6 +152,8 @@ set(ETHERNET_SKIP_UDP_CHECKSUMS YES
 
 set(SIM_TEST_MULTIPLICATION OFF
     CACHE BOOL  "Bootloader firmware tests processor multiplication")
+set(SIM_TEST_SYS_TIMER      OFF
+    CACHE BOOL  "Bootloader firmware tests system timer")
 set(SIM_TEST_MINIMAC        OFF
     CACHE BOOL  "Bootloader firmware tests myminimac IP-core")
 set(SIM_TEST_MINIMAC_SLOT_LOGICK OFF

@@ -128,6 +128,11 @@ always @(posedge clk_i or posedge rst_i) begin
         arbiter_state <= ARBITER_NO_SELECTION;
         strobes <= 2'b00;
         continues <= 2'b00;
+
+        busy <= 1'b0;
+        spi_transaction <= 1'b0;
+        internal_addr <= 0;
+        word_ack <= 1'b0;
     end else begin
         strobes <= { mm1_stb_i, mm0_stb_i } | strobes;
         continues <= 2'b00;
@@ -192,21 +197,7 @@ always @(posedge clk_i or posedge rst_i) begin
         end
 
         endcase
-    end
-end
 
-
-/// ------- /arbiter --------
-
-/// -------- reader ---------
-
-always @(posedge clk_i or posedge rst_i) begin
-    if (rst_i) begin
-        busy <= 1'b0;
-        spi_transaction <= 1'b0;
-        internal_addr <= 0;
-        word_ack <= 1'b0;
-    end else begin
         word_ack <= 1'b0;
         if (busy) begin
             // continue
@@ -225,11 +216,12 @@ always @(posedge clk_i or posedge rst_i) begin
     end
 end
 
-///
+
+/// ------- /arbiter --------
 
 spi_flash_sys_init
 #(
-    .SYS_CLK_RATE(MASTER_CLK_FREQ_HZ / 400.0), // idle timeout -> min
+    .SYS_CLK_RATE(MASTER_CLK_FREQ_HZ * 1.0), // idle timeout -> min
     .FLASH_IDLE(1),
     .DECODE_BITS(1),
     .DEF_R_4(32'h0), // No initialisation

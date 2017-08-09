@@ -131,14 +131,16 @@ parameter SLAVE_ADDR_BITS = OUT_ADDR_WIDTH - 2; // force [1:0] == 2'b0
 
 ///
 
-assign out0_addr_o = {mem_addr_i[OUT_ADDR_WIDTH-1:2], 2'b00};
-assign out1_addr_o = {mem_addr_i[OUT_ADDR_WIDTH-1:2], 2'b00};
-assign out2_addr_o = {mem_addr_i[OUT_ADDR_WIDTH-1:2], 2'b00};
-assign out3_addr_o = {mem_addr_i[OUT_ADDR_WIDTH-1:2], 2'b00};
-assign out4_addr_o = {mem_addr_i[OUT_ADDR_WIDTH-1:2], 2'b00};
-assign out5_addr_o = {mem_addr_i[OUT_ADDR_WIDTH-1:2], 2'b00};
-assign out6_addr_o = {mem_addr_i[OUT_ADDR_WIDTH-1:2], 2'b00};
-assign out7_addr_o = {mem_addr_i[OUT_ADDR_WIDTH-1:2], 2'b00};
+wire [OUT_ADDR_WIDTH-1:0] addr = {mem_addr_i[OUT_ADDR_WIDTH-1:2], 2'b00};
+
+assign out0_addr_o = addr;
+assign out1_addr_o = addr;
+assign out2_addr_o = addr;
+assign out3_addr_o = addr;
+assign out4_addr_o = addr;
+assign out5_addr_o = addr;
+assign out6_addr_o = addr;
+assign out7_addr_o = addr;
 
 assign out0_data_o = mem_data_i;
 assign out1_data_o = mem_data_i;
@@ -197,21 +199,21 @@ begin
 
    case (mem_addr_i[OUT_ADDR_WIDTH+3-1:OUT_ADDR_WIDTH])
 
-   2'd0:
+   3'd0:
    begin
        out0_sel_o       = mem_sel_i;
        out0_we_o        = mem_we_i;
        out0_stb_o       = mem_stb_i;
        out0_cyc_o       = mem_cyc_i;
    end
-   2'd1:
+   3'd1:
    begin
        out1_sel_o       = mem_sel_i;
        out1_we_o        = mem_we_i;
        out1_stb_o       = mem_stb_i;
        out1_cyc_o       = mem_cyc_i;
    end
-   2'd2:
+   3'd2:
    begin
        out2_sel_o       = mem_sel_i;
        out2_we_o        = mem_we_i;
@@ -225,21 +227,21 @@ begin
        out3_stb_o       = mem_stb_i;
        out3_cyc_o       = mem_cyc_i;
    end
-   2'd4:
+   3'd4:
    begin
        out4_sel_o       = mem_sel_i;
        out4_we_o        = mem_we_i;
        out4_stb_o       = mem_stb_i;
        out4_cyc_o       = mem_cyc_i;
    end
-   2'd5:
+   3'd5:
    begin
        out5_sel_o       = mem_sel_i;
        out5_we_o        = mem_we_i;
        out5_stb_o       = mem_stb_i;
        out5_cyc_o       = mem_cyc_i;
    end
-   2'd6:
+   3'd6:
    begin
        out6_sel_o       = mem_sel_i;
        out6_we_o        = mem_we_i;
@@ -263,49 +265,49 @@ always @ *
 begin
    case (mem_addr_i[OUT_ADDR_WIDTH+3-1:OUT_ADDR_WIDTH])
 
-    2'd0:
+    3'd0:
     begin
        mem_data_o   = out0_data_i;
        mem_stall_o  = out0_stall_i;
        mem_ack_o    = out0_ack_i;
     end
-    2'd1:
+    3'd1:
     begin
        mem_data_o   = out1_data_i;
        mem_stall_o  = out1_stall_i;
        mem_ack_o    = out1_ack_i;
     end
-    2'd2:
+    3'd2:
     begin
        mem_data_o   = out2_data_i;
        mem_stall_o  = out2_stall_i;
        mem_ack_o    = out2_ack_i;
     end
-    2'd3:
+    3'd3:
     begin
        mem_data_o   = out3_data_i;
        mem_stall_o  = out3_stall_i;
        mem_ack_o    = out3_ack_i;
     end
-    2'd4:
+    3'd4:
     begin
        mem_data_o   = out4_data_i;
        mem_stall_o  = out4_stall_i;
        mem_ack_o    = out4_ack_i;
     end
-    2'd5:
+    3'd5:
     begin
        mem_data_o   = out5_data_i;
        mem_stall_o  = out5_stall_i;
        mem_ack_o    = out5_ack_i;
     end
-    2'd6:
+    3'd6:
     begin
        mem_data_o   = out6_data_i;
        mem_stall_o  = out6_stall_i;
        mem_ack_o    = out6_ack_i;
     end
-    2'd7:
+    3'd7:
     begin
        mem_data_o   = out7_data_i;
        mem_stall_o  = out7_stall_i;

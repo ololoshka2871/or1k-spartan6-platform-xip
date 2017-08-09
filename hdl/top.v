@@ -175,7 +175,6 @@ wire                                    clk;
 wire                                    clk_ref;
 
 wire                                    clk_io;
-wire                                    spi_cs_o;
 
 wire[2:0]                               ext_intr;
 
@@ -336,7 +335,7 @@ wb_mux4
 //-----------------------------------------------------------------
 xip_adapter
 #(
-    .MASTER_CLK_FREQ_HZ(CLK_KHZ * 1000),
+    .MASTER_CLK_FREQ_HZ(CLK_KHZ),
     .RAM_PROGRAMM_MEMORY_START(`BOOT_VECTOR),
 `ifdef XILINX_ISIM
     .SPI_FLASH_PROGRAMM_START(0)
@@ -472,9 +471,6 @@ else
     reset       <= 1'b0;
 //else 
 //    rst_next    <= 1'b0;
-
-// flash_CS
-assign flash_CS = spi_cs_o;
 
 //-----------------------------------------------------------------
 // Unused pins

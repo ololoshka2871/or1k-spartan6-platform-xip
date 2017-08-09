@@ -20,9 +20,6 @@ SECTIONS
     {
         . = ALIGN(4);
         *(.text .text.*)		 /* remaining code */
-        *(.rodata)			 /* read-only data (constants) */
-        *(.rodata*)
-        *(.rdata*)
         PROVIDE(_text_end = .);
         . = ALIGN(4);
         PROVIDE(_data_load = .);
@@ -31,6 +28,9 @@ SECTIONS
     .data :
     {
         PROVIDE(_data_start = .);
+        *(.rodata)			 /* read-only data (constants) */
+        *(.rodata*)
+        *(.rdata*)
         *(.got.plt) *(.got)
         *(.shdata)
         *(.data .data.* .gnu.linkonce.d.*)

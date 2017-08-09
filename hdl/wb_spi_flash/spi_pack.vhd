@@ -1111,7 +1111,7 @@ begin
                   clk_count <= to_unsigned(CLK_COUNT_DESEL,clk_count'length);
                   idle_timer <= to_unsigned(FLASH_IDLE,idle_timer'length);
                   sr <= to_unsigned(SPI_CMD_RDSR,sr'length);
-                  spi_state <= IDLE;
+                  spi_state <= GIVE_ACK; -- was IDLE
                   fl_state <= IDLE;
               else
                   idle_timer <= to_unsigned(FLASH_IDLE,idle_timer'length);

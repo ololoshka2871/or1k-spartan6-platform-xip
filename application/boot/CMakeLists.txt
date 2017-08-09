@@ -31,41 +31,8 @@
 
 cmake_minimum_required(VERSION 2.8.5)
 
-#SET(GDB_HW_SRC		    gdb_hw.c gdb.c boot_spi.c)
-#SET(GDB_NORMAL_SRC	    gdb_main.c)
-#SET(GDB_NOTRAP_SRC	    gdb_main_notrap.c)
-#SET(GDB_NOTRAP_SIM_SRC	    gdb_main_sim_notrap.c)
-SET(STARTUP_SRC_C           ${CMAKE_CURRENT_SOURCE_DIR}/startup.c)
 SET(STARTUP_SRC             ${CMAKE_CURRENT_SOURCE_DIR}/boot.S)
 
-
-#if(PERIPHERIAL_ENABLE_HW_MUL)
-#    list(APPEND GDB_HW_SRC __mulsi3.c)
-#endif()
-
-INCLUDE_DIRECTORIES(.)
-
-#set(difenitions
-#    SYSTEM_HEADER_W1=${SYSTEM_HEADER_W1}
-#    SYSTEM_HEADER_W2=${SYSTEM_HEADER_W2}
-#    SPI_MODULE_TINY
-#    )
-
-#if (SYSTEM_PERFORM_COREMARK_AT_BOOT)
-#    list(APPEND difenitions SYSTEM_PERFORM_COREMARK_AT_BOOT)
-#endif()
-
-add_library(startup STATIC ${STARTUP_SRC_C})
-
-#add_library(gdb_stub STATIC ${GDB_HW_SRC} ${GDB_NORMAL_SRC})
-#add_library(gdb_stub_notrap STATIC ${GDB_HW_SRC} ${GDB_NOTRAP_SRC})
-#add_library(gdb_stub_sim_notrap STATIC ${GDB_HW_SRC} ${GDB_NOTRAP_SIM_SRC})
-
-#set_target_properties(gdb_stub              PROPERTIES COMPILE_DEFINITIONS "${difenitions}")
-#set_target_properties(gdb_stub_notrap       PROPERTIES COMPILE_DEFINITIONS "${difenitions}")
-#set_target_properties(gdb_stub_sim_notrap   PROPERTIES COMPILE_DEFINITIONS "${difenitions}")
-
-add_custom_target(boot_src  SOURCES ${STARTUP_SRC} ${STARTUP_SRC_C})
+add_custom_target(boot_src  SOURCES ${STARTUP_SRC})
 
 set(BOOT_S           ${STARTUP_SRC}                     PARENT_SCOPE)
-#set(GDB_STUB_DIR    ${CMAKE_CURRENT_SOURCE_DIR}         PARENT_SCOPE)

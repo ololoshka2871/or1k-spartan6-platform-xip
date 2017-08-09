@@ -3,7 +3,7 @@
 #include "exception.inc"
 
 .section    .boot.vectors, "ax"
-/*
+
 #-------------------------------------------------------------
 # handle_exception: Common exception handling code
 #-------------------------------------------------------------
@@ -26,7 +26,7 @@ exception_return:
     asm_load_context
 
 .size   handle_exception, .-handle_exception
-*/
+
 #-------------------------------------------------------------
 # VECTOR 0x100 - Reset
 #-------------------------------------------------------------
@@ -82,11 +82,11 @@ LOAD_DATA_end:
 
     //
     # Jump to debug agent
-    l.j startup
+    l.j gdb_main
     l.nop
 
 .size vector_reset, .-vector_reset
-/*
+
 #-------------------------------------------------------------
 # VECTOR 0x200 - Fault / Illegal Instruction
 #-------------------------------------------------------------
@@ -174,5 +174,5 @@ vector_trap:
     l.nop
 
 .size vector_trap, .-vector_trap
-*/
+
 
