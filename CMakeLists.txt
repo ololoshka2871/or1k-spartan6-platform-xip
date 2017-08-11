@@ -73,11 +73,11 @@ set(DEVICE_SPI_FLASH_CHIP       "W25Q32BV"
 
 #----------------------------SYSTEM---------------------------------------------
 
-set(SYSTEM_FPGA_BMEMORY_USE     28
+set(SYSTEM_FPGA_BMEMORY_USE     23
     CACHE STRING "Number of RAMB16BWERs to use as main memory")
 set(SYSTEM_HEAP_SIZE            512
     CACHE STRING "System memory heap size")
-set(SYSTEM_FRINTF_FLOAT_SUPPORT OFF
+set(SYSTEM_FRINTF_FLOAT_SUPPORT ON
     CACHE BOOL  "Support for frinting float by ee_printf()")
 set(SYSTEM_PERFORM_COREMARK_AT_BOOT OFF
     CACHE BOOL  "Execture Coremark at boot")
@@ -109,8 +109,6 @@ set(BAUD_UART0                  115200
     CACHE STRING "UART0 (debug) speed")
 set(BAUD_MDIO                   2500000
     CACHE STRING "MDIO speed")
-set(BAUD_SPI_CLK_DEVIDER_LEN    4
-    CACHE STRING "Boot SPI baud counter length (bits)")
 set(BAUD_I2C                    100000
     CACHE STRING "i2c speed")
 #---------------------------------- /SERIALs -----------------------------------
