@@ -1,0 +1,18 @@
+2K performance run parameters for coremark.
+CoreMark Size    : 666
+Total ticks      : 860071787
+Total time (secs): 13.438622
+Iterations/Sec   : 81.853633
+Iterations       : 1100
+Compiler version : GCC5.2.0
+Compiler flags   :     -Wall     -pipe     -ffunction-sections -fdata-sections     -msoft-div 
+-msoft-mul -mno-ror -mno-cmov -mno-sext     -msoft-float -std=gnu99 -mno-delay
+Memory location  : STACK
+seedcrc          : 0xe9f5
+[0]crclist       : 0xe714
+[0]crcmatrix     : 0x1fd7
+[0]crcstate      : 0x8e3a
+[0]crcfinal      : 0x33ff
+Correct operation validated. See readme.txt for run and reporting rules.
+CoreMark 1.0 : 81.853633 / GCC5.2.0     -Wall     -pipe     -ffunction-sections -fdata-sections     
+-msoft-div -msoft-mul -mno-ror -mno-cmov -mno-sext     -msoft-float -std=gnu99 -mno-delay / STACK
