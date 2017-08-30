@@ -33,20 +33,21 @@
 `include "config.v"
 
 module soc_fast
-(
+#(
+    parameter ADDR_WITH                 = 32
+) (
     // WISHBONE bus slave interface
     input  wire				clk_i,         // clock
     input  wire				rst_i,         // reset (asynchronous active low)
     input  wire				cyc_i,         // cycle
     input  wire				stb_i,         // strobe
-    input  wire [31:0]                  adr_i,         // address
+    input  wire [ADDR_WITH-1:0]         adr_i,         // address
     input  wire				we_i,          // write enable
     input  wire [31:0]                  dat_i,         // data input
     output wire [31:0]                  dat_o,         // data output
     output wire				ack_o,         // normal bus termination
     output wire                         stall_o,       // stall
     input  wire [3:0]                   sel_i,         // byte sellect
-    input  wire [2:0]                   cti_i,
 
 `ifdef ETHERNET_ENABLED
     // RMII interface
@@ -70,56 +71,57 @@ parameter MEMORY_SIZE_BLOCKS = $rtoi($ceil(ETHERNET_FRAME_SIZE * $itor(4) / MEMO
 parameter MEMORY_SIZE_BYTES = MEMORY_SIZE_BLOCKS * MEMORY_BLOCK_SIZE;
 parameter MEMORY_ADDR_WIDTH = $clog2(MEMORY_SIZE_BYTES);
 
-//------------------------------------------------------------------------------
-
-// Data Memory 1 (0x11100000 - 0x111FFFFF)
-wire [31:0]         ethernet_ctl_addr;
-wire [31:0]         ethernet_ctl_data_r;
-wire [31:0]         ethernet_ctl_data_w;
-wire                ethernet_ctl_we;
-wire                ethernet_ctl_ack;
-wire                ethernet_ctl_stb;
-wire                ethernet_ctl_cyc;
-
-// Data Memory 2 (0x11200000 - 0x112FFFFF)
-wire [31:0]         ethernet_txbuf_addr;
-wire [31:0]         ethernet_txbuf_data_r;
-wire [31:0]         ethernet_txbuf_data_w;
-wire [3:0]          ethernet_txbuf_sel;
-wire                ethernet_txbuf_we;
-wire                ethernet_txbuf_stb;
-wire                ethernet_txbuf_cyc;
-wire                ethernet_txbuf_ack;
-wire                ethernet_txbuf_stall;
-
-// Data Memory 3 (0x11300000 - 0x113FFFFF)
-wire [31:0]         ethernet_rxbuf_addr;
-wire [31:0]         ethernet_rxbuf_data_r;
-wire [31:0]         ethernet_rxbuf_data_w;
-wire [3:0]          ethernet_rxbuf_sel;
-wire                ethernet_rxbuf_we;
-wire                ethernet_rxbuf_stb;
-wire                ethernet_rxbuf_cyc;
-wire                ethernet_rxbuf_ack;
-wire                ethernet_rxbuf_stall;
+parameter DEV_ADDR_WIDTH = ADDR_WITH - 2;
 
 //------------------------------------------------------------------------------
 
-wire                freqmeter_inta;
-wire                ethernat_rx_int;
-wire                ethernat_tx_int;
+// eth MAC control
+wire [DEV_ADDR_WIDTH-1:0]   ethernet_ctl_addr;
+wire [31:0]                 ethernet_ctl_data_r;
+wire [31:0]                 ethernet_ctl_data_w;
+wire                        ethernet_ctl_we;
+wire                        ethernet_ctl_ack;
+wire                        ethernet_ctl_stb;
+wire                        ethernet_ctl_cyc;
+
+// eth MAC rx buf
+wire [DEV_ADDR_WIDTH-1:0]   ethernet_txbuf_addr;
+wire [31:0]                 ethernet_txbuf_data_r;
+wire [31:0]                 ethernet_txbuf_data_w;
+wire [3:0]                  ethernet_txbuf_sel;
+wire                        ethernet_txbuf_we;
+wire                        ethernet_txbuf_stb;
+wire                        ethernet_txbuf_cyc;
+wire                        ethernet_txbuf_ack;
+wire                        ethernet_txbuf_stall;
+
+// eth MAC tx buf
+wire [DEV_ADDR_WIDTH-1:0]   ethernet_rxbuf_addr;
+wire [31:0]                 ethernet_rxbuf_data_r;
+wire [31:0]                 ethernet_rxbuf_data_w;
+wire [3:0]                  ethernet_rxbuf_sel;
+wire                        ethernet_rxbuf_we;
+wire                        ethernet_rxbuf_stb;
+wire                        ethernet_rxbuf_cyc;
+wire                        ethernet_rxbuf_ack;
+wire                        ethernet_rxbuf_stall;
+
+//------------------------------------------------------------------------------
+
+wire                        ethernat_rx_int;
+wire                        ethernat_tx_int;
 
 //------------------------------------------------------------------------------
 
 assign interrupts_o = {ethernat_rx_int, ethernat_tx_int, 1'b0};
 
 // muxer
-dmem_mux4
+wb_mux4
 #(
-    .ADDR_MUX_START(20)
+    .OUT_ADDR_WIDTH(DEV_ADDR_WIDTH)
 ) u_dmux (
     // Outputs
-    // 0x11000000 - 0x110FFFFF
+    // 0x03000000 - 0x033FFFFF
     .out0_addr_o(/* open */),
     .out0_data_o(/* open */),
     .out0_data_i(32'b0),
@@ -127,11 +129,10 @@ dmem_mux4
     .out0_we_o(/* open */),
     .out0_stb_o(/* open */),
     .out0_cyc_o(/* open */),
-    .out0_cti_o(/* open */),
     .out0_ack_i(1'b0),
     .out0_stall_i(1'b0),
 
-    // 0x11100000 - 0x111FFFFF
+    // 0x03400000 - 0x037FFFFF
     .out1_addr_o(ethernet_ctl_addr),
     .out1_data_o(ethernet_ctl_data_w),
     .out1_data_i(ethernet_ctl_data_r),
@@ -139,11 +140,10 @@ dmem_mux4
     .out1_we_o(ethernet_ctl_we),
     .out1_stb_o(ethernet_ctl_stb),
     .out1_cyc_o(ethernet_ctl_cyc),
-    .out1_cti_o(/*open*/),
     .out1_ack_i(ethernet_ctl_ack),
     .out1_stall_i(1'b0),
 
-    // 0x11200000 - 0x112FFFFF
+    // 0x03800000 - 0x03BFFFFF
     .out2_addr_o(ethernet_txbuf_addr),
     .out2_data_o(ethernet_txbuf_data_w),
     .out2_data_i(ethernet_txbuf_data_r),
@@ -151,11 +151,10 @@ dmem_mux4
     .out2_we_o(ethernet_txbuf_we),
     .out2_stb_o(ethernet_txbuf_stb),
     .out2_cyc_o(ethernet_txbuf_cyc),
-    .out2_cti_o(/*open*/),
     .out2_ack_i(ethernet_txbuf_ack),
     .out2_stall_i(ethernet_txbuf_stall),
 
-    // 0x11300000 - 0x113FFFFF
+    // 0x03C00000 - 0x03FFFFFF
     .out3_addr_o(ethernet_rxbuf_addr),
     .out3_data_o(ethernet_rxbuf_data_w),
     .out3_data_i(ethernet_rxbuf_data_r),
@@ -163,11 +162,10 @@ dmem_mux4
     .out3_we_o(ethernet_rxbuf_we),
     .out3_stb_o(ethernet_rxbuf_stb),
     .out3_cyc_o(ethernet_rxbuf_cyc),
-    .out3_cti_o(/*open*/),
     .out3_ack_i(ethernet_rxbuf_ack),
     .out3_stall_i(ethernet_rxbuf_stall),
 
-    // Input 0x11000000 - 0x11FFFFFF
+    // Input 0x03000000 - 0x03FFFFFF
     .mem_addr_i(adr_i),
     .mem_data_i(dat_i),
     .mem_data_o(dat_o),
@@ -175,7 +173,6 @@ dmem_mux4
     .mem_we_i(we_i),
     .mem_stb_i(stb_i),
     .mem_cyc_i(cyc_i),
-    .mem_cti_i(cti_i),
     .mem_ack_o(ack_o),
     .mem_stall_o(stall_o)
 );
@@ -184,8 +181,8 @@ dmem_mux4
 // ethernet
 myminimac
 #(
-    .RX_MEMORY_BASE(32'h11300000),
-    .TX_MEMORY_BASE(32'h11200000)
+    .RX_MEMORY_BASE(32'h03C00000),
+    .TX_MEMORY_BASE(32'h03800000)
 ) ethernet (
     .sys_clk(clk_i),
     .sys_rst(rst_i),

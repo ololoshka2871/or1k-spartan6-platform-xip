@@ -35,7 +35,14 @@
 module myminimac
 #(
     parameter RX_MEMORY_BASE      = 32'h00000000,
-    parameter TX_MEMORY_BASE      = 32'h10000000
+    parameter TX_MEMORY_BASE      = 32'h10000000,
+    parameter RX_SLOTS            = 4,
+    parameter TX_SLOTS            = 1,
+    parameter MTU                 = 1530,
+    parameter RX_ADDR_WIDTH = $clog2($rtoi($ceil(MTU * $itor(RX_SLOTS) /
+        (`MEMORY_UNIT_SIZE / 8))) * `MEMORY_UNIT_SIZE / 8),
+    parameter TX_ADDR_WIDTH = $clog2($rtoi($ceil(MTU * $itor(TX_SLOTS) /
+        (`MEMORY_UNIT_SIZE / 8))) * `MEMORY_UNIT_SIZE / 8)
 ) (
     input                           sys_clk,        // WISHBONE clock
     input                           sys_rst,        // GLOBAL RESET
@@ -43,7 +50,7 @@ module myminimac
     output                          irq_rx,         // RX interrupt
     output                          irq_tx,         // TX interrupt
 
-    input  wire [31:0]              csr_adr_i,      // control logic addr
+    input  wire [5:0]               csr_adr_i,      // control logic addr
     input  wire                     csr_we_i,       // control logick write enable
     input  wire [31:0]              csr_dat_i,      // control logick data input
     output wire [31:0]              csr_dat_o,      // control logick data output
@@ -52,7 +59,7 @@ module myminimac
     input                           csr_cyc_i,      // control logick select
 
     // system bus port A (rx memory)
-    input  wire [31:0]              rx_mem_adr_i,    // ADR_I() address
+    input  wire [RX_ADDR_WIDTH-1:0] rx_mem_adr_i,    // ADR_I() address
     input  wire [31:0]              rx_mem_dat_i,    // DAT_I() data in
     output wire [31:0]              rx_mem_dat_o,    // DAT_O() data out
     input  wire                     rx_mem_we_i,     // WE_I write enable input
@@ -63,7 +70,7 @@ module myminimac
     output wire                     rx_mem_stall_o,  // incorrect address
 
     // system bus port B (tx memory)
-    input  wire [31:0]              tx_mem_adr_i,   // ADR_I() address
+    input  wire [TX_ADDR_WIDTH-1:0] tx_mem_adr_i,   // ADR_I() address
     input  wire [31:0]              tx_mem_dat_i,   // DAT_I() data in
     output wire [31:0]              tx_mem_dat_o,   // DAT_O() data out
     input  wire                     tx_mem_we_i,    // WE_I write enable input
@@ -80,15 +87,6 @@ module myminimac
     input  wire [1:0]               phy_rmii_rx_data,// ressive data bus
     output wire                     phy_tx_en       // transmitter enable
 );
-
-parameter RX_SLOTS = 4;
-parameter TX_SLOTS = 1;
-parameter MTU = 1530;
-parameter RX_ADDR_WIDTH = $clog2($rtoi($ceil(MTU * $itor(RX_SLOTS) /
-    (`MEMORY_UNIT_SIZE / 8))) * `MEMORY_UNIT_SIZE / 8);
-parameter TX_ADDR_WIDTH = $clog2($rtoi($ceil(MTU * $itor(TX_SLOTS) /
-    (`MEMORY_UNIT_SIZE / 8))) * `MEMORY_UNIT_SIZE / 8);
-
 
 parameter csr_do_len = $clog2(MTU);
 
@@ -121,7 +119,7 @@ myminimac_ctlif_cd2
     .irq_rx(irq_rx),
     .irq_tx(irq_tx),
 
-    .csr_a(csr_adr_i[5:0]),
+    .csr_a(csr_adr_i),
     .csr_we(csr_we_i),
     .csr_di(csr_dat_i),
     .csr_do(csr_dat_o),

@@ -160,7 +160,7 @@ wire [7:0]         mdio_addr;
 wire               mdio_stb;
 wire               mdio_we;
 wire [31:0]        mdio_data_w;
-wire [7:0]         mdio_data_r;
+wire [31:0]        mdio_data_r;
 wire               mdio_intr;
 
 wire [7:0]         i2c_addr;
@@ -244,7 +244,7 @@ wb_mux8
     // MDIO                         0x400
     .out4_addr_o(mdio_addr),
     .out4_data_o(mdio_data_w),
-    .out4_data_i({{24{1'b0}}, mdio_data_r}),
+    .out4_data_i(mdio_data_r),
     .out4_sel_o(/* open */),
     .out4_we_o(mdio_we),
     .out4_stb_o(mdio_stb),
@@ -404,9 +404,9 @@ wb_mdio
     .rst_i(rst_i),
     .cyc_i(io_cyc_i),
     .stb_i(mdio_stb),
-    .adr_i(mdio_addr[3:2]),
+    .adr_i(mdio_addr[4:2]),
     .we_i(mdio_we),
-    .dat_i(mdio_data_w[7:0]),
+    .dat_i(mdio_data_w),
     .dat_o(mdio_data_r),
 
     .inta_o(mdio_intr),

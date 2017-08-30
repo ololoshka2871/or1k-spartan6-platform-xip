@@ -31,7 +31,7 @@
 
 cmake_minimum_required(VERSION 2.8.5)
 
-project(or1k-spartan6-platform_firmware ASM C)
+project(or1k-spartan6-platform-xip_firmware ASM C)
 
 set(LD_SCRIPT_FILE_IN  "${CMAKE_CURRENT_SOURCE_DIR}/link.ld.in")
 set(LD_SCRIPT_FILE     "${CMAKE_CURRENT_BINARY_DIR}/link.ld")

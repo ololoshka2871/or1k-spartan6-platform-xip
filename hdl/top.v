@@ -346,7 +346,7 @@ xip_adapter
     .rst_i(reset),
     .clk_i(clk),
 
-    .mm0_addr_i(imem_address),
+    .mm0_addr_i(imem_address[23:0]),
     .mm0_dat_o(imem_data),
     .mm0_dat_i(32'h0),
     .mm0_we(1'b0),
@@ -421,20 +421,21 @@ soc
 // Fast perepherial
 //-----------------------------------------------------------------
 soc_fast
-sf (
+#(
+    .ADDR_WITH(LEVEL_0_ADDRESS_WIDTH)
+) sf (
     .clk_i(clk),
     .rst_i(reset),
 
     .cyc_i(sf_cyc),
     .stb_i(sf_stb),
-    .adr_i({{(32-LEVEL_0_ADDRESS_WIDTH){1'b0}}, sf_addr}),
+    .adr_i(sf_addr),
     .we_i(sf_we),
     .dat_i(sf_data_w),
     .dat_o(sf_data_r),
     .ack_o(sf_ack),
     .stall_o(sf_stall),
     .sel_i(sf_sel),
-    .cti_i(3'h0),
 
 `ifdef ETHERNET_ENABLED
     .phy_rmii_clk(rmii_clk),

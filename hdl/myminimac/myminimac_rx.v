@@ -44,7 +44,7 @@ module myminimac_rx
     input                           sys_clk,            // System clock
     input                           sys_rst,            // System reset
 
-    input  wire [31:0]              rx_mem_adr_i,       // ADR_I() address
+    input  wire [ADDR_LEN-1:0]      rx_mem_adr_i,       // ADR_I() address
     input  wire [31:0]              rx_mem_dat_i,       // DAT_I() data in
     output wire [31:0]              rx_mem_dat_o,       // DAT_O() data out
     input  wire                     rx_mem_we_i,        // WE_I write enable input

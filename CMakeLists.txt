@@ -32,7 +32,7 @@
 
 cmake_minimum_required(VERSION 2.8.5)
 
-project(or1k-spartan6-platform NONE)
+project(or1k-spartan6-platform-xip NONE)
 
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE "Debug")
@@ -73,7 +73,7 @@ set(DEVICE_SPI_FLASH_CHIP       "W25Q32BV"
 
 #----------------------------SYSTEM---------------------------------------------
 
-set(SYSTEM_FPGA_BMEMORY_USE     23
+set(SYSTEM_FPGA_BMEMORY_USE     19
     CACHE STRING "Number of RAMB16BWERs to use as main memory")
 set(SYSTEM_HEAP_SIZE            512
     CACHE STRING "System memory heap size")
