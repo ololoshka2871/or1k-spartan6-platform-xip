@@ -160,8 +160,6 @@ set(SIM_TEST_MDIO           OFF
     CACHE BOOL  "Bootloader firmware tests myminimac IP-core MDIO interface")
 set(SIM_TEST_I2C            OFF
     CACHE BOOL  "Bootloader firmware tests I2C interface")
-set(SIM_TEST_SPI            OFF
-    CACHE BOOL  "Bootloader firmware tests SPI interface")
 set(SIM_TEST_GPIO           OFF
     CACHE BOOL  "Bootloader firmware tests GPIO pins")
 set(SIM_TEST_CRC32          OFF

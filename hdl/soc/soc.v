@@ -158,6 +158,7 @@ wire               intr_stb;
 
 wire [7:0]         mdio_addr;
 wire               mdio_stb;
+wire               mdio_cyc_i;
 wire               mdio_we;
 wire [31:0]        mdio_data_w;
 wire [31:0]        mdio_data_r;
@@ -193,7 +194,7 @@ wb_mux8
     .mem_sel_i(4'b1111),
     .mem_we_i(io_we_i),
     .mem_stb_i(io_stb_i),
-    .mem_cyc_i(1'b0),
+    .mem_cyc_i(io_cyc_i),
     .mem_ack_o(io_ack_o),
     .mem_stall_o(/* open */),
 
@@ -248,7 +249,7 @@ wb_mux8
     .out4_sel_o(/* open */),
     .out4_we_o(mdio_we),
     .out4_stb_o(mdio_stb),
-    .out4_cyc_o(/* open */),
+    .out4_cyc_o(mdio_cyc_i),
     .out4_ack_i(1'b1),
     .out4_stall_i(1'b0),
 
@@ -402,7 +403,7 @@ wb_mdio
 ) mdio_ip (
     .clk_i(clk_i),
     .rst_i(rst_i),
-    .cyc_i(io_cyc_i),
+    .cyc_i(mdio_cyc_i),
     .stb_i(mdio_stb),
     .adr_i(mdio_addr[4:2]),
     .we_i(mdio_we),

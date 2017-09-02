@@ -113,6 +113,7 @@ always @(posedge clk_i) begin
         start_pulse <= 1'b0;
         mdio_ie <= 1'b0;
         dat_o <= 32'b0;
+        rw <= 1'b0;
     end else begin
         start_pulse <= 1'b0;
 

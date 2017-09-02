@@ -34,15 +34,14 @@
 #include <stdint.h>
 
 #include "timer.h"
-
-#if 0
-
-#include "minimac2.h"
 #include "mdio.h"
 #include "GPIO.h"
 #include "i2c.h"
 #include "crc32.h"
-#include "boot_spi.h"
+
+#if 0
+
+#include "minimac2.h"
 
 #endif
 
@@ -62,8 +61,6 @@ static void test_systimer() {
     volatile uint32_t now2 = hires_timer_now();
 }
 
-#if 0
-
 static void test_mdio() {
     // Test MDIO
     for(uint8_t i = 0; i < 5; ++i) {
@@ -72,6 +69,33 @@ static void test_mdio() {
     }
 }
 
+static void test_i2c() {
+    uint8_t res[10];
+#ifndef IICMB_I2C
+    gpio_port_init(GPIO_PORTA, 0);
+#endif
+    i2c_init();
+
+    i2c_read_bus(0, 0x10, res);
+    i2c_read_bus_mul(0, 0, res, sizeof(res));
+}
+
+static void test_crc32() {
+    static const char test_data[] = "Test_Data_string01zd";
+    uint32_t res = 0;
+    while(res != 0xE4D2E6C2)
+        res = crc32(test_data, sizeof(test_data));
+}
+
+static void test_gpio() {
+    GPIO gpio = gpio_port_init(GPIO_PORTA, 0xffffffff);
+
+    gpio_port_set_all(gpio, 0xA5A5A5A5);
+    gpio_port_set_all(gpio, ~0xA5A5A5A5);
+}
+
+
+#if 0
 static void test_minmac() {
     memcpy(0x11300000, 0x11300100, 0x100);
 
@@ -99,25 +123,6 @@ static void test_minmac() {
     miniMAC_resetRxSlot(MINIMAC_RX_SLOT3);
 }
 
-static void test_i2c() {
-    uint8_t res[10];
-#ifndef IICMB_I2C
-    gpio_port_init(GPIO_PORTA, 0);
-#endif
-    i2c_init();
-
-    i2c_read_bus(0, 0x10, res);
-    i2c_read_bus_mul(0, 0, res, sizeof(res));
-}
-
-static void test_spi() {
-    uint8_t res[10] = {0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0xff, 0xfe, 0xaa, 0x55};
-
-    boot_spi_init(SPI_CLOCK_DEV_2, SPI_MODE3);
-
-    boot_spi_transfer_buf(res, res, sizeof(res));
-}
-
 static void test_minmac_slotlogick() {
     miniMAC_control(true, true);
 
@@ -128,21 +133,6 @@ static void test_minmac_slotlogick() {
     miniMAC_slot_complite_and_send(ptx_slot);
     miniMAC_reset_rx_slot(MINIMAC_RX_SLOT0);
 }
-
-static void test_gpio() {
-    GPIO gpio = gpio_port_init(GPIO_PORTA, 0xffffffff);
-
-    gpio_port_set_all(gpio, 0xA5A5A5A5);
-    gpio_port_set_all(gpio, ~0xA5A5A5A5);
-}
-
-static void test_crc32() {
-    static const char test_data[] = "Test_Data_string01zd";
-    uint32_t res = 0;
-    while(res != 0xE4D2E6C2)
-        res = crc32(test_data, sizeof(test_data));
-}
-
 #endif
 
 void run_tests() {
