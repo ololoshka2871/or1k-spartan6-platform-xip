@@ -55,7 +55,7 @@ SET(LIBHW_SOURCES
     GPIO.c
     syscall.c
     seg7_display.c
-    #minimac2.c
+    minimac2.c
     mdio.c
     prog_timer.c
     iicmb.c
@@ -64,22 +64,22 @@ SET(LIBHW_SOURCES
     crc32.c
     )
 
-#add_custom_command(
-#    OUTPUT ${ETHERNET_CONFIG_INCLUDE_FILE}
-#    COMMAND
-#        ${GEN_ETH_CONFIG} ${_genMAC_ARGUMENTS} > ${ETHERNET_CONFIG_INCLUDE_FILE}
-#    DEPENDS ${MACADDR_GENERATOR}
-#    COMMENT
-#        "Generating random MAC address"
-#    )
-#add_custom_target(gen_mac DEPENDS ${ETHERNET_CONFIG_INCLUDE_FILE})
+add_custom_command(
+    OUTPUT ${ETHERNET_CONFIG_INCLUDE_FILE}
+    COMMAND
+        ${GEN_ETH_CONFIG} ${_genMAC_ARGUMENTS} > ${ETHERNET_CONFIG_INCLUDE_FILE}
+    DEPENDS ${MACADDR_GENERATOR}
+    COMMENT
+        "Generating random MAC address"
+    )
+add_custom_target(gen_mac DEPENDS ${ETHERNET_CONFIG_INCLUDE_FILE})
 
-#add_custom_target(regen_mac
-#    COMMAND
-#        rm ${ETHERNET_CONFIG_INCLUDE_FILE} && touch ${SETTINGS_SRC}
-#    COMMENT
-#        "Force regenerate MAC address on next build"
-#    )
+add_custom_target(regen_mac
+    COMMAND
+        rm ${ETHERNET_CONFIG_INCLUDE_FILE} && touch ${SETTINGS_SRC}
+    COMMENT
+        "Force regenerate MAC address on next build"
+    )
 
 if(PERIPHERIAL_ENABLE_HW_MUL)
     list(APPEND LIBHW_SOURCES __mulsi3.c)
@@ -145,7 +145,7 @@ endif()
 
 add_library(hw STATIC ${LIBHW_SOURCES})
 
-#add_dependencies(hw gen_mac)
+add_dependencies(hw gen_mac)
 
 set_target_properties(hw PROPERTIES COMPILE_DEFINITIONS "${difenitions}")
 

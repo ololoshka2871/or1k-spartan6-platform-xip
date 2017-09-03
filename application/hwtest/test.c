@@ -38,12 +38,8 @@
 #include "GPIO.h"
 #include "i2c.h"
 #include "crc32.h"
-
-#if 0
-
 #include "minimac2.h"
 
-#endif
 
 static void test_multiplication() {
     volatile int32_t a = -15;
@@ -94,10 +90,8 @@ static void test_gpio() {
     gpio_port_set_all(gpio, ~0xA5A5A5A5);
 }
 
-
-#if 0
 static void test_minmac() {
-    memcpy(0x11300000, 0x11300100, 0x100);
+    memcpy(MAC_RX_MEM_BASE + 100, MAC_TX_MEM_BASE, 0x100);
 
 #if 0
     miniMAC_control(true, true);
@@ -133,7 +127,6 @@ static void test_minmac_slotlogick() {
     miniMAC_slot_complite_and_send(ptx_slot);
     miniMAC_reset_rx_slot(MINIMAC_RX_SLOT0);
 }
-#endif
 
 void run_tests() {
 

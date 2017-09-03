@@ -80,6 +80,7 @@ set(SIM_DIFENITIONS
 
 include_directories(${TOOLCHAIN_INCLUDE_PATH})
 
+add_subdirectory(scripts)
 add_subdirectory(include)
 add_subdirectory(boot)
 add_subdirectory(gdb_stub)
@@ -87,6 +88,7 @@ add_subdirectory(libbase)
 add_subdirectory(coremark)
 add_subdirectory(libhw)
 add_subdirectory(hwtest)
+add_subdirectory(ibexukIP)
 
 set_property(SOURCE ${BOOT_S} PROPERTY LANGUAGE C)
 
@@ -98,7 +100,7 @@ add_executable(${FIRMWARE_IMG_FILE_NAME}
     ${APP_MAIN_SRC}
     )
 target_link_libraries(${FIRMWARE_IMG_FILE_NAME}
-    -Wl,--start-group ${BOOT_LIB} base coremark hw -Wl,--end-group
+    -Wl,--start-group ${BOOT_LIB} base coremark hw ibexukIP -Wl,--end-group
     )
 set_target_properties(${FIRMWARE_IMG_FILE_NAME} PROPERTIES COMPILE_DEFINITIONS "${COMMON_DIFENITIONS}")
 set_target_properties(${FIRMWARE_IMG_FILE_NAME} PROPERTIES LINK_DEPENDS ${LD_SCRIPT_FILE})
@@ -109,7 +111,7 @@ add_executable(${FIRMWARE_SIM_IMG_FILE_NAME}
     ${APP_MAIN_SRC}
     )
 target_link_libraries(${FIRMWARE_SIM_IMG_FILE_NAME}
-    -Wl,--start-group gdb_stub_sim base coremark hw hwtest -Wl,--end-group
+    -Wl,--start-group gdb_stub_sim base coremark hw hwtest ibexukIP -Wl,--end-group
     )
 set_target_properties(${FIRMWARE_SIM_IMG_FILE_NAME} PROPERTIES COMPILE_DEFINITIONS "${SIM_DIFENITIONS}")
 set_target_properties(${FIRMWARE_SIM_IMG_FILE_NAME} PROPERTIES LINK_DEPENDS ${LD_SCRIPT_FILE})

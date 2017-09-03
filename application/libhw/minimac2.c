@@ -36,26 +36,6 @@
 
 #include "minimac2.h"
 
-#ifndef MAC_CTL_BASE
-#warning "MAC_CTL_BASE undefined!"
-#define MAC_CTL_BASE             (FIO_BASE + 0x00100000)
-#endif
-
-#ifndef MAC_TX_MEM_BASE
-#warning "MAC_TX_MEM_BASE undefined!"
-#define MAC_TX_MEM_BASE          (FIO_BASE + 0x00200000)
-#endif
-
-#ifndef MAC_RX_MEM_BASE
-#warning "MAC_RX_MEM_BASE undefined!"
-#define MAC_RX_MEM_BASE          (FIO_BASE + 0x00300000)
-#endif
-
-#ifndef MTU
-#warning "MTU undefined!"
-#define MTU                      1530
-#endif
-
 
 // Registers
 #define REG_OFFSET(N)            ((N) << 2)

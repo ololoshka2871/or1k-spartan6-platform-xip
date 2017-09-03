@@ -320,8 +320,8 @@ wb_mux4
 
     // SOC fast                 (0x03000000)
     .out3_addr_o(sf_addr),
-    .out3_data_o(sf_data_r),
-    .out3_data_i(sf_data_w),
+    .out3_data_o(sf_data_w),
+    .out3_data_i(sf_data_r),
     .out3_sel_o(sf_sel),
     .out3_we_o(sf_we),
     .out3_stb_o(sf_stb),

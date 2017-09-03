@@ -44,6 +44,26 @@
 #define ETHERNET_FRAME_SIZE_MIN     64
 #define ETHERNET_PAYLOAD_SIZE_MIN   (ETHERNET_FRAME_SIZE_MIN - sizeof(struct ethernet_header) - sizeof(uint32_t))
 
+#ifndef MAC_CTL_BASE
+#warning "MAC_CTL_BASE undefined!"
+#define MAC_CTL_BASE             (FIO_BASE + 0x00400000)
+#endif
+
+#ifndef MAC_TX_MEM_BASE
+#warning "MAC_TX_MEM_BASE undefined!"
+#define MAC_TX_MEM_BASE          (FIO_BASE + 0x00800000)
+#endif
+
+#ifndef MAC_RX_MEM_BASE
+#warning "MAC_RX_MEM_BASE undefined!"
+#define MAC_RX_MEM_BASE          (FIO_BASE + 0x00C00000)
+#endif
+
+#ifndef MTU
+#warning "MTU undefined!"
+#define MTU                      1530
+#endif
+
 enum enMiniMACSlotStates {
     MINIMAC_SLOT_STATE_DISABLED = 0b00,
     MINIMAC_SLOT_STATE_READY = 0b01,

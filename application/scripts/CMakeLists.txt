@@ -29,31 +29,12 @@
 #*
 #****************************************************************************/
 
-cmake_minimum_required(VERSION 3.0.2)
+set(GEN_ETH_CONFIG     "${CMAKE_CURRENT_SOURCE_DIR}/gen_eth_config.sh")
 
-
-file(GLOB_RECURSE
-    SOC_HDL_V
-    FOLLOW_SYMLINKS
-    "*.v"
-    )
-
-file(GLOB_RECURSE
-    SOC_HDL_VHDL
-    FOLLOW_SYMLINKS
-    "*.vhd*"
-    )
-
-# Fake target: add sources to project tree (Qt Creator)
-add_custom_target(soc_sources
+add_custom_target(app_scripts.editor
     SOURCES
-        ${SOC_HDL_V} ${SOC_HDL_VHDL}
+        ${GEN_ETH_CONFIG}
     )
-
-set(SOC_HDL_V		    ${SOC_HDL_V}		PARENT_SCOPE)
-set(SOC_HDL_VHDL            ${SOC_HDL_VHDL}             PARENT_SCOPE)
-
-set(MAC_TX_MEM_BASE         0x03800000                  PARENT_SCOPE)
-set(MAC_RX_MEM_BASE         0x03C00000                  PARENT_SCOPE)
-set(MAC_CTL_BASE            0x03400000                  PARENT_SCOPE)
+    
+set(GEN_ETH_CONFIG      ${GEN_ETH_CONFIG}               PARENT_SCOPE)
 

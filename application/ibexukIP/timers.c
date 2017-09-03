@@ -1,5 +1,4 @@
 /****************************************************************************
- * src/main.c
  *
  *   Copyright (C) 2016 Shilo_XyZ_. All rights reserved.
  *   Author:  Shilo_XyZ_ <Shilo_XyZ_<at>mail.ru>
@@ -30,24 +29,57 @@
  *
  ****************************************************************************/
 
-#ifndef SYSCALL_H
-#define SYSCALL_H
+#include <stddef.h>
 
-#include <stdint.h>
+#include "main.h"					//Global data type definitions (see https://github.com/ibexuk/C_Generic_Header_File )
+#include "eth-main.h"		//Include before our header file
+#define	NIC_C
+#include "eth-nic.h"
 
-typedef unsigned int*  (*syscall_handler)(unsigned int *registers);
+#ifdef STACK_USE_DHCP
+#include "eth-dhcp.h"
+#endif
 
-uint32_t __attribute__((noinline)) syscall(uint32_t arg);
-syscall_handler __attribute__((noinline))
-install_syscall_handler(syscall_handler handler);
+#include "mdio.h"
 
-void read_boot_flash(uint32_t addr, uint8_t *dest, uint32_t size);
-void reboot();
+#include "prog_timer.h"
 
-void flush_dcache(void);
+#ifdef STACK_USE_DHCP
+static void tick_1ms(void* p)  {
+    (void)p;
 
-//
-unsigned long mfspr(unsigned long spr);
-void mtspr(unsigned long spr, unsigned long value);
+    //----- NIC DHCP TIMER -----
+    if (eth_dhcp_1ms_timer)
+        eth_dhcp_1ms_timer--;
+}
+#endif
 
-#endif // SYSCALL_H
+static void tick_1s(void* p)  {
+    (void)p;
+#ifdef STACK_USE_DHCP
+    if (eth_dhcp_1sec_renewal_timer)
+        eth_dhcp_1sec_renewal_timer--;
+#endif
+    if (eth_dhcp_1sec_lease_timer)
+        eth_dhcp_1sec_lease_timer--;
+
+    // check PHY connection
+    nic_is_linked = MDIO_getConnectionStatus(-1);
+}
+
+
+static void tick_10ms(void* p)  {
+    (void)p;
+
+    //----- ETHERNET GENERAL TIMER -----
+    ethernet_10ms_clock_timer_working++;
+}
+
+void init_eth_timers() {
+    // save no pointer, can't free
+#ifdef STACK_USE_DHCP
+    progtimer_new(1, tick_1ms, NULL);
+#endif
+    progtimer_new(10, tick_10ms, NULL);
+    progtimer_new(1000, tick_1s, NULL);
+}
